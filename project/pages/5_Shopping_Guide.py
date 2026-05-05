@@ -2,17 +2,24 @@ import streamlit as st
 import requests
 import urllib.parse
 import pandas as pd
+import pandas as pd
 
-df = pd.read_csv("https://www.soumu.go.jp/main_content/000730858.csv", encoding="shift_jis")
+df = pd.read_excel(
+    "https://raw.githubusercontent.com/bunbu793/SafeBox/main/japan_city_code.xlsx"
+)
+
+df.columns = df.columns.str.normalize("NFKC").str.strip()
+df = df.fillna("")
+
 
 API_KEY = st.secrets["GEOAPIFY_KEY"]
 
 #県
-pref_list = sorted(df["都道府県名"].unique())
+pref_list = sorted(df["都道府県名\n(漢字)"].unique())
 
 #市区町村
 city_map = {
-    pref: sorted(df[df["都道府県名"] == pref]["市区町村名"].unique())
+    pref: sorted(df[df["都道府県名\n(漢字)"] == pref]["市区町村名\n(漢字)"].unique())
     for pref in pref_list
 }
 
@@ -23,11 +30,7 @@ seirei = {
     "神戸市","岡山市","広島市","北九州市","福岡市","熊本市"
 }
 
-ward_map = {
-    city: sorted(df[df["市区町村名"] == city]["区名"].dropna().unique())
-    for city in seirei
-}
-
+ward_map = {city: [] for city in seirei}
 
 # =========================
 # 日本語住所辞書
@@ -139,13 +142,10 @@ else:
 
 ward = st.selectbox("区（ない場合は空欄）", ward_list)
 
-station_list = station_map.get(city, []) or station_map.get(pref, [])
-station = st.selectbox("駅（任意）", station_list)
-
 place = st.text_input("場所名（例：イオン、セブンイレブン）")
 
 # 空の項目は除外
-parts = [pref, city, ward, station, place]
+parts = [pref, city, ward, place]
 search_text = " ".join([p for p in parts if p])
 
 category_map = {
@@ -159,7 +159,7 @@ category_map = {
 
 category_name = st.selectbox("探したい店の種類", list(category_map.keys()))
 
-if place or station:
+if place:
     result = geocode(search_text)
 
     if not result:
