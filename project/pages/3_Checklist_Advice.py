@@ -51,9 +51,9 @@ st.subheader("必要量の目安")
 for name, value in required.items():
     st.write(f"- **{name}**：必要量 → **{value}**")
 
-
+# -------------------------
 # チェック状態の永続化（JSON）
-
+# -------------------------
 
 CHECK_PATH = "data/checklist.json"
 
@@ -66,9 +66,9 @@ if not os.path.exists(CHECK_PATH):
 with open(CHECK_PATH, "r") as f:
     saved_checks = json.load(f)
 
-
+# -------------------------
 # チェックリスト表示
-
+# -------------------------
 
 st.subheader("チェックリスト")
 
@@ -78,18 +78,18 @@ for name in required.keys():
     default = saved_checks.get(name, False)
     checked[name] = st.checkbox(f"{name}：{required[name]}", value=default)
 
-
+# -------------------------
 # 保存ボタン
-
+# -------------------------
 
 if st.button("チェック状態を保存"):
     with open(CHECK_PATH, "w") as f:
         json.dump(checked, f, indent=2)
     st.success("チェック状態を保存しました")
 
-
+# -------------------------
 # 未チェックの表示
-
+# -------------------------
 
 st.subheader("チェックされていない備品")
 

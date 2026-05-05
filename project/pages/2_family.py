@@ -8,9 +8,9 @@ supabase = create_client(url, key)
 
 st.title("SafeBox Manager - Family composition")
 
-
+# -------------------------
 # ログインチェック
-
+# -------------------------
 if "family_code" not in st.session_state:
     st.warning("初めにログインをしてください")
     st.stop()
@@ -18,15 +18,15 @@ if "family_code" not in st.session_state:
 family_code = st.session_state["family_code"]
 st.success(f"ログイン中: {family_code}")
 
-
+# -------------------------
 # 編集モード管理
-
+# -------------------------
 if "edit_mode" not in st.session_state:
     st.session_state.edit_mode = False
 
-
+# -------------------------
 # Supabase から家族データ読み込み
-
+# -------------------------
 response = supabase.table("family_profiles").select("*").eq("family_code", family_code).execute()
 
 if response.data:
@@ -34,7 +34,7 @@ if response.data:
 else:
     family_data = {"members": 1, "names": [], "notes": ""}
 
-
+# -------------------------
 # 編集モード切り替えボタン
 
 st.subheader("家族構成")
@@ -50,9 +50,9 @@ else:
 
 disabled_flag = not st.session_state.edit_mode
 
-
+# -------------------------
 # 家族人数入力
-
+# -------------------------
 members = st.number_input(
     "家族人数",
     min_value=1,
