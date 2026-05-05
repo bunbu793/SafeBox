@@ -1,4 +1,4 @@
-supabase-py
+supabase
 streamlit
 pandas
 requests
