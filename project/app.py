@@ -1,5 +1,6 @@
 import streamlit as st
 from supabase import create_client
+import requests
 import base64
 import json
 import os
@@ -42,12 +43,13 @@ if "kobito_shown" not in st.session_state:
 # 小人を一度だけ表示
 if not st.session_state.kobito_shown:
 
-    # 画像読み込み
-    def get_base64_image(path):
-        with open(path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
+    def get_base64_image_from_url(url):
+        response = requests.get(url)
+        return base64.b64encode(response.content).decode()
 
-    kobito_intro = get_base64_image("assets/kobito1.png")
+    kobito_intro = get_base64_image_from_url(
+            "https://raw.githubusercontent.com/bunbu793/SafeBox/main/project/assets/kobito1.png"
+            )
 
     # CSS（アニメーション）
     st.markdown("""
