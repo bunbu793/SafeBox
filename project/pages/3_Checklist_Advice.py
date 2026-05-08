@@ -57,14 +57,14 @@ for name, value in required.items():
 
 CHECK_PATH = "data/checklist.json"
 
-# JSONがなければ作成
-if not os.path.exists(CHECK_PATH):
-    with open(CHECK_PATH, "w") as f:
-        json.dump({}, f)
+response = supabase.table("checklist").select("*").eq(
+    "family_code", st.session_state["family_code"]
+).execute()
 
-# JSON読み込み
-with open(CHECK_PATH, "r") as f:
-    saved_checks = json.load(f)
+if response.data:
+    saved_checks = json.loads(response.data[0]["data"])
+else:
+    saved_checks = {}
 
 # -------------------------
 # チェックリスト表示
@@ -83,8 +83,10 @@ for name in required.keys():
 # -------------------------
 
 if st.button("チェック状態を保存"):
-    with open(CHECK_PATH, "w") as f:
-        json.dump(checked, f, indent=2)
+    supabase.table("checklist").upsert({
+        "family_code": st.session_state["family_code"],
+        "data": json.dumps(checked)
+    }).execute()
     st.success("チェック状態を保存しました")
 
 # -------------------------
