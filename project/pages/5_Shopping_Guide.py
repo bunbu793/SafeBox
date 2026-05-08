@@ -6,7 +6,7 @@ import pandas as pd
 
 df = pd.read_csv(
     "https://raw.githubusercontent.com/bunbu793/SafeBox/main/japan_city_code.csv",
-    encoding="utf-16-le"
+    encoding="utf-16"
 )
 
 
