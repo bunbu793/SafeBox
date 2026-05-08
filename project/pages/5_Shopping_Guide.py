@@ -4,8 +4,8 @@ import urllib.parse
 import pandas as pd
 import pandas as pd
 
-df = pd.read_excel(
-    "https://raw.githubusercontent.com/bunbu793/SafeBox/main/japan_city_code.xlsx"
+df = pd.read_csv(
+    "https://raw.githubusercontent.com/bunbu793/SafeBox/main/japan_city_code.csv"
 )
 
 df.columns = df.columns.str.normalize("NFKC").str.strip()
