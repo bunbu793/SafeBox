@@ -6,8 +6,9 @@ import pandas as pd
 
 df = pd.read_csv(
     "https://raw.githubusercontent.com/bunbu793/SafeBox/main/japan_city_code.csv",
-    encoding="cp932"
+    encoding="utf-16-le"
 )
+
 
 df.columns = df.columns.str.normalize("NFKC").str.strip()
 df = df.fillna("")
