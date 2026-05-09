@@ -8,7 +8,7 @@ df = pd.read_csv(
     encoding="utf-8"
 )
 
-# 🔹 まず列名を正規化（全角→半角、改行・空白除去）
+# 列名を正規化（全角→半角、改行・空白除去）
 df.columns = df.columns.str.normalize("NFKC").str.replace("\n", "").str.strip()
 
 # 都道府県名順（五十音順）＋市区町村名順に並び替え
