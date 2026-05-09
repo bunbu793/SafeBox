@@ -11,20 +11,20 @@ df = pd.read_csv(
 # 列名を正規化（全角→半角、改行・空白除去）
 df.columns = df.columns.str.normalize("NFKC").str.replace("\n", "").str.strip()
 
-# 🔹 都道府県名(カナ)で五十音順に並び替え
+# 🔹 団体コード順（都道府県順）＋市区町村順に並び替え
 df = df.sort_values(
-    by=["都道府県名(カナ)", "市区町村名(カナ)"],
+    by=["団体コード"],
     ascending=True
 )
 
 df = df.fillna("")
 
-# 🔹 都道府県リスト（カナ順 → 五十音順）
+# 🔹 都道府県リスト（団体コード順）
 pref_list = df["都道府県名(漢字)"].drop_duplicates().tolist()
 
 # 🔹 市区町村リスト
 city_map = {
-    pref: sorted(df[df["都道府県名(漢字)"] == pref]["市区町村名(漢字)"].unique())
+    pref: df[df["都道府県名(漢字)"] == pref]["市区町村名(漢字)"].unique().tolist()
     for pref in pref_list
 }
 
