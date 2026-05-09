@@ -3,7 +3,7 @@ import requests
 import urllib.parse
 import pandas as pd
 
-st.secrets["GEOAPIFY_KEY"]
+API_KEY = st.secrets["GEOAPIFY_KEY"]
 
 df = pd.read_csv(
     "https://raw.githubusercontent.com/bunbu793/SafeBox/main/japan_city_code.csv",
