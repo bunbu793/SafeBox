@@ -9,9 +9,14 @@ df = pd.read_csv(
     encoding="utf-8"
 )
 
-# 都道府県名順に並び替え
-df = df.sort_values(by=["都道府県名", "市区町村名(漢字)"], ascending=True)
+# 列名を正規化（全角・半角・改行・空白を除去）
+df.columns = df.columns.str.normalize("NFKC").str.strip()
 
+# 正しい列名を確認
+print(df.columns)
+
+# 並び替え
+df = df.sort_values(by=["都道府県名", "市区町村名(漢字)"], ascending=True)
 
 df.columns = df.columns.str.normalize("NFKC").str.strip()
 df = df.fillna("")
