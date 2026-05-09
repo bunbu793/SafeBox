@@ -11,10 +11,17 @@ df = pd.read_csv(
 # 🔹 まず列名を正規化（全角→半角、改行・空白除去）
 df.columns = df.columns.str.normalize("NFKC").str.replace("\n", "").str.strip()
 
-# 🔹 並び替え（正規化後の列名を使う）
-df = df.sort_values(by=["都道府県名(漢字)", "市区町村名(漢字)"], ascending=True)
+# 都道府県名順（五十音順）＋市区町村名順に並び替え
+df = df.sort_values(
+    by=["都道府県名(漢字)", "市区町村名(漢字)"],
+    ascending=True,
+    key=lambda col: col.map(lambda x: str(x))
+)
 
 df = df.fillna("")
+
+# 都道府県リスト（五十音順）
+pref_list = sorted(df["都道府県名(漢字)"].unique(), key=lambda x: str(x))
 
 API_KEY = st.secrets["GEOAPIFY_KEY"]
 
