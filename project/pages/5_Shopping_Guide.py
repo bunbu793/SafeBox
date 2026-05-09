@@ -2,29 +2,28 @@ import streamlit as st
 import requests
 import urllib.parse
 import pandas as pd
-import pandas as pd
 
 df = pd.read_csv(
     "https://raw.githubusercontent.com/bunbu793/SafeBox/main/japan_city_code.csv",
     encoding="utf-8"
 )
 
-# 正しい列名に合わせて並び替え
+# 🔹 まず列名を正規化（全角→半角、改行・空白除去）
+df.columns = df.columns.str.normalize("NFKC").str.replace("\n", "").str.strip()
+
+# 🔹 並び替え（正規化後の列名を使う）
 df = df.sort_values(by=["都道府県名(漢字)", "市区町村名(漢字)"], ascending=True)
 
-
-df.columns = df.columns.str.normalize("NFKC").str.strip()
 df = df.fillna("")
-
 
 API_KEY = st.secrets["GEOAPIFY_KEY"]
 
-#県
-pref_list = sorted(df["都道府県名\n(漢字)"].unique())
+# 🔹 都道府県リスト
+pref_list = sorted(df["都道府県名(漢字)"].unique())
 
-#市区町村
+# 🔹 市区町村リスト
 city_map = {
-    pref: sorted(df[df["都道府県名\n(漢字)"] == pref]["市区町村名\n(漢字)"].unique())
+    pref: sorted(df[df["都道府県名(漢字)"] == pref]["市区町村名(漢字)"].unique())
     for pref in pref_list
 }
 
