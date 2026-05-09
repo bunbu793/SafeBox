@@ -13,7 +13,7 @@ df = pd.read_csv(
 df.columns = df.columns.str.normalize("NFKC").str.strip()
 
 # 正しい列名を確認
-print(df.columns)
+st.write(df.columns)
 
 # 並び替え
 df = df.sort_values(by=["都道府県名", "市区町村名(漢字)"], ascending=True)
