@@ -5,7 +5,7 @@ import pandas as pd
 import pandas as pd
 
 df = pd.read_csv(
-    "https://raw.githubusercontent.com/bunbu793/SafeBox/main/japan_city_code.csv",
+    "https://raw.githubusercontent.com/bunbu793/SafeBox/main/2-japan_city_code.csv",
     encoding="utf-16"
 )
 
