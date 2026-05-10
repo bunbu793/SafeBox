@@ -282,7 +282,7 @@ if search:
         # 🔥 Geoapify 静的地図
         map_url = (
             f"https://maps.geoapify.com/v1/staticmap?"
-            f"style=osm-carto&center=lonlat:{lng},{lat}&zoom=15&size=600x400&apiKey={API_KEY}"
+            f"style=osm-carto&center=lonlat:{lng},{lat}&zoom=13&size=600x400&apiKey={API_KEY}"
         )
         st.image(map_url)
 
