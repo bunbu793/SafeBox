@@ -170,22 +170,20 @@ pref = st.selectbox("都道府県", pref_list)
 # 東京都だけ特別処理
 # =========================
 if pref == "東京都":
-    # 市区町村から23区を除外（八王子市などだけ残す）
-    city_list = [c for c in city_map[pref] if c not in TOKYO_23]
+    tokyo_cities = [c for c in city_map[pref] if c not in TOKYO_23]
 
-    # 特別区のセレクトボックス
-    special_ward = st.selectbox("特別区（東京23区)",TOKYO_23)
+    city_list = ["特別区"] +  tokyo_cities
+    city = st.selectbox("市（特別区・多摩地域）", city_list)
 
-    # 市のセレクトボックス（多摩地域の市）
-    city = st.selectbox("市（多摩地域)",city_list)
-
-    # 区の扱い：特別区が選ばれたらそれを ward にする
-    ward = special_ward
-
-else:
-    # =========================
+    if city == "特別区":
+        ward_list = TOKYO_23
+    else:
+        ward_list = []
+    
+    ward = st.selectbox("区（ない場合は空欄）", ward_list)
     # 通常の都道府県
     # =========================
+else:
     city_list = city_map.get(pref, [])
     city = st.selectbox("市（東京都は市がある）", city_list)
 
@@ -195,6 +193,7 @@ else:
         ward_list = []
 
     ward = st.selectbox("区（ない場合は空欄）", ward_list)
+
 place = st.text_input("場所名（例：東京駅、皇居）")
 
 # 空の項目は除外
