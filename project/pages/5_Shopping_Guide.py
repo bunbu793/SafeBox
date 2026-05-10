@@ -269,11 +269,12 @@ category_name = st.selectbox("探したい店の種類", list(category_map.keys(
 search = st.button("検索🔍")
 
 if search:
-    result = geocode(search_text)
+    with st.spinner("検索中…"):
+        result = geocode(search_text)
 
-    if not result:
-        st.error("住所が見つからなかったよ…")
-        st.stop()
+        if not result:
+            st.error("住所が見つかりませんでした。入力を見直してください。")
+            st.stop()
 
     lat, lng = result
     st.write(f"📍 緯度: {lat}, 経度: {lng}")
@@ -283,7 +284,9 @@ if search:
     st.subheader(f"🔍 {search_text} の近くの {category_name}")
 
     if not stores:
-        st.error("見つからなかったよ…")
+        st.info("該当する店舗が見つかりませんでした。")
+        st.stop()
+
     else:
         unique = {}
         for s in stores:
