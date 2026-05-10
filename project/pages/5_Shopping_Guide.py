@@ -283,7 +283,7 @@ if search:
         map_url = (
             f"https://maps.geoapify.com/v1/staticmap?"
             f"style=osm-carto&center=lonlat:{lng},{lat}"
-            f"&zoom=15&size=600x400"
+            f"&zoom=13&size=600x400"
             f"&marker=lonlat:{lng},{lat};color:red;size:medium"
             f"&apiKey={API_KEY}"
         )
