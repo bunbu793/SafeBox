@@ -174,10 +174,10 @@ if pref == "東京都":
     city_list = [c for c in city_map[pref] if c not in TOKYO_23]
 
     # 特別区のセレクトボックス
-    special_ward = st.selectbox("特別区（東京23区）"+ TOKYO_23)
+    special_ward = st.selectbox("特別区（東京23区）"TOKYO_23)
 
     # 市のセレクトボックス（多摩地域の市）
-    city = st.selectbox("市（多摩地域）"+ city_list)
+    city = st.selectbox("市（多摩地域）"city_list)
 
     # 区の扱い：特別区が選ばれたらそれを ward にする
     ward = special_ward
