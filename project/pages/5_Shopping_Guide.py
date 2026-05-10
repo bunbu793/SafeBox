@@ -140,8 +140,6 @@ PREF_MAP = {
     "Okinawa": "沖縄県",
 }
 
-PREF_MAP.update(pref_eng_map)
-
 CITY_MAP = {
     "Nagoya": "名古屋市",
     "Toyota": "豊田市",
@@ -167,6 +165,16 @@ NAME_MAP = {
     "Ozone": "大曽根",
     "Hachioji": "八王子",
 }
+
+# PREF_MAP の下に追加
+for jp in df["市区町村名(漢字)"].unique():
+    eng = jp.replace("市", "").replace("区", "")
+    CITY_MAP[eng] = jp
+
+for city, wards in ward_map.items():
+    for w in wards:
+        eng = w.replace("区", "")
+        WARD_MAP[eng] = w
 
 def to_japanese_address(address: str) -> str:
     for eng, jp in STRUCT_MAP_ORDERED:
