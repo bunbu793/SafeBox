@@ -2,6 +2,20 @@ import streamlit as st
 import requests
 import urllib.parse
 import pandas as pd
+import math
+
+def calc_distance(lat1, lon1, lat2, lon2):
+    R = 6371  # 地球の半径（km）
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = (
+        math.sin(dlat/2)**2 
+        + math.cos(math.radians(lat1)) 
+        * math.cos(math.radians(lat2)) 
+        * math.sin(dlon/2)**2
+    )
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    return R * c
 
 API_KEY = st.secrets["GEOAPIFY_KEY"]
 
@@ -285,18 +299,7 @@ if search:
 
         st.write(f"📍 緯度: {lat}, 経度: {lng}")
 
-        map_url = (
-            f"https://maps.geoapify.com/v1/staticmap?"
-            f"style=osm-carto"
-            f"&center=lonlat:{lng},{lat}"
-            f"&zoom=14"
-            f"&size=600x400"
-            f"&marker=lonlat:{lng},{lat};color:red;size:medium"
-            f"&apiKey={API_KEY}"
-        )
-
-        st.image(map_url)
-
+        # 店舗検索
         stores = search_places(category_map[category_name], lat, lng)
 
     st.subheader(f"🔍 {search_text} の近くの {category_name}")
@@ -305,23 +308,56 @@ if search:
         st.info("該当する店舗が見つかりませんでした。")
         st.stop()
 
-    else:
-        unique = {}
-        for s in stores:
-            props = s["properties"]
-            name = props.get("name", "名称不明")
-            if name in unique:
-                continue
+    # 重複排除
+    unique = {}
+    for s in stores:
+        props = s["properties"]
+        name = props.get("name", "名称不明")
+        if name not in unique:
             unique[name] = props
 
-        for name, props in unique.items():
-            city = props.get("city", "")
-            suburb = props.get("suburb", "")
-            district = props.get("district", "")
-            street = props.get("street", "")
+    # 🔵 店舗ピン生成
+    markers = ""
+    for props in unique.values():
+        slat = props.get("lat")
+        slng = props.get("lon")
+        if slat and slng:
+            markers += f"&marker=lonlat:{slng},{slat};color:blue;size:small"
 
-            raw_address = " ".join([p for p in [city, suburb, district, street] if p])
-            address = to_japanese_address(raw_address)
+    # 🔴 検索地点ピン
+    center_marker = f"&marker=lonlat:{lng},{lat};color:red;size:medium"
 
-            st.write(f"### {name}")
-            st.write(f"📍{address}")
+    # 🗺️ 地図URL（複数ピン対応）
+    map_url = (
+        f"https://maps.geoapify.com/v1/staticmap?"
+        f"style=osm-carto"
+        f"&center=lonlat:{lng},{lat}"
+        f"&zoom=14"
+        f"&size=600x400"
+        f"{center_marker}"
+        f"{markers}"
+        f"&apiKey={API_KEY}"
+    )
+
+    st.image(map_url)
+
+    # 店舗リスト表示（距離つき）
+    for name, props in unique.items():
+        city = props.get("city", "")
+        suburb = props.get("suburb", "")
+        district = props.get("district", "")
+        street = props.get("street", "")
+
+        slat = props.get("lat")
+        slng = props.get("lon")
+
+        raw_address = " ".join([p for p in [city, suburb, district, street] if p])
+        address = to_japanese_address(raw_address)
+
+        # 距離計算
+        dist = calc_distance(lat, lng, slat, slng)
+        dist_text = f"{dist:.2f} km"
+
+        st.write(f"### {name}")
+        st.write(f"📍 {address}")
+        st.write(f"🚶 距離: {dist_text}")
