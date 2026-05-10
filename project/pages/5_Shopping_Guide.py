@@ -337,8 +337,7 @@ if search:
     for props in unique.values():
         slat = props.get("lat")
         slng = props.get("lon")
-        if slat and slng:
-            markers += f"&marker=lonlat:{slng},{slat};color:blue;size:small"
+        markers += f"&marker=lonlat:{slng},{slat};color:blue;size:small"
 
     # 🔴 検索地点ピン
     center_marker = f"&marker=lonlat:{lng},{lat};color:red;size:medium"
