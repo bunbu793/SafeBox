@@ -277,13 +277,20 @@ if search:
             st.stop()
 
         lat, lng = result
+
+        # 東京駅だけ補正
+        if "東京駅" in search_text:
+            lat = 35.6815444
+            lng = 139.764657
+
         st.write(f"📍 緯度: {lat}, 経度: {lng}")
 
-        # 🔥 Geoapify 静的地図（ピン付き）
         map_url = (
             f"https://maps.geoapify.com/v1/staticmap?"
-            f"style=osm-carto&center=lonlat:{lng},{lat}"
-            f"&zoom=13&size=600x400"
+            f"style=osm-carto"
+            f"&center=lonlat:{lng},{lat}"
+            f"&zoom=14"
+            f"&size=600x400"
             f"&marker=lonlat:{lng},{lat};color:red;size:medium"
             f"&apiKey={API_KEY}"
         )
