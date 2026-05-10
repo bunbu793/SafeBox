@@ -26,10 +26,9 @@ pref_list = df["都道府県名(漢字)"].drop_duplicates().tolist()
 
 # 🔹 市区町村リスト
 city_map = {
-    pref: df[df["都道府県名(漢字)"] == pref]["市区町村名(漢字)"].unique().tolist()
+    pref: [c for c in df[df["都道府県名(漢字)"] == pref]["市区町村名(漢字)"].unique().tolist() if c]
     for pref in pref_list
 }
-
 
 #区リスト
 seirei = {
