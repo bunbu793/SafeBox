@@ -313,8 +313,24 @@ if search:
     for s in stores:
         props = s["properties"]
         name = props.get("name", "名称不明")
+        slat = props.get("lat")
+        slng = props.get("lon")
+
         if name not in unique:
             unique[name] = props
+        
+        dist = calc_distance(lat, lng, slat, slng)
+
+        # 2km以上は除外
+        if dist > 2:
+            continue
+
+        if name not in unique:
+            props["distance"] = dist
+            unique[name] = props
+        
+    #◆距離が近い順  
+    unique = dict(sorted(unique.items(), key=lambda item: item[1].get("distance", float("inf"))))
 
     # 🔵 店舗ピン生成
     markers = ""
