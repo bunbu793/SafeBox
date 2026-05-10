@@ -279,6 +279,13 @@ if search:
     lat, lng = result
     st.write(f"📍 緯度: {lat}, 経度: {lng}")
 
+    # 🔥 Geoapify 静的地図
+    map_url = (
+        f"https://maps.geoapify.com/v1/staticmap?"
+        f"style=osm-carto&center=lonlat:{lng},{lat}&zoom=15&size=600x400&apiKey={API_KEY}"
+    )
+    st.image(map_url)
+
     stores = search_places(category_map[category_name], lat, lng)
 
     st.subheader(f"🔍 {search_text} の近くの {category_name}")
