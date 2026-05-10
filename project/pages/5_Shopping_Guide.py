@@ -166,23 +166,36 @@ st.title("🗺️ お店を探す")
 
 pref = st.selectbox("都道府県", pref_list)
 
-city_list = city_map.get(pref, [])
-city = st.selectbox("市（東京都は市がある）", city_list)
-
-# 市がある場合は ward_map[市]、ない場合は ward_map[都道府県]
+# =========================
+# 東京都だけ特別処理
+# =========================
 if pref == "東京都":
-    # 東京23区を出す
-    ward_list = TOKYO_23
-elif city in ward_map:
-    # 政令指定都市の区を出す
-    ward_list = ward_map[city]
+    # 市区町村から23区を除外（八王子市などだけ残す）
+    city_list = [c for c in city_map[pref] if c not in TOKYO_23]
+
+    # 特別区のセレクトボックス
+    special_ward = st.selectbox("特別区（東京23区）", [""] + TOKYO_23)
+
+    # 市のセレクトボックス（多摩地域の市）
+    city = st.selectbox("市（多摩地域）", [""] + city_list)
+
+    # 区の扱い：特別区が選ばれたらそれを ward にする
+    ward = special_ward
+
 else:
-    # それ以外は区なし
-    ward_list = []
+    # =========================
+    # 通常の都道府県
+    # =========================
+    city_list = city_map.get(pref, [])
+    city = st.selectbox("市（東京都は市がある）", city_list)
 
-ward = st.selectbox("区（ない場合は空欄）", ward_list)
+    if city in ward_map:
+        ward_list = ward_map[city]
+    else:
+        ward_list = []
 
-place = st.text_input("場所名（例：イオン、セブンイレブン）")
+    ward = st.selectbox("区（ない場合は空欄）", ward_list)
+place = st.text_input("場所名（例：東京駅、皇居）")
 
 # 空の項目は除外
 parts = [pref, city, ward, place]
