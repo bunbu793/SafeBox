@@ -252,7 +252,6 @@ else:
 
 place = st.text_input("場所名（例：東京駅、皇居）")
 
-search = st.button("検索🔍")
 # 空の項目は除外
 parts = [pref, city, ward, place]
 search_text = " ".join([p for p in parts if p])
@@ -267,6 +266,7 @@ category_map = {
 }
 
 category_name = st.selectbox("探したい店の種類", list(category_map.keys()))
+search = st.button("検索🔍")
 
 if search:
     result = geocode(search_text)
