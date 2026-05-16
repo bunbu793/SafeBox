@@ -6,7 +6,7 @@ url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
-st.title("家族共有メモ")
+st.title("SafeBox Manager - Family code")
 
 # ログインチェック
 if "family_code" not in st.session_state:
