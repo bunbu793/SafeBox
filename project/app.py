@@ -10,6 +10,10 @@ supabase = create_client(
     st.secrets["SUPABASE_KEY"]
 )
 
+st.write("URL:", st.secrets.get("SUPABASE_URL"))
+st.write("KEY:", st.secrets.get("SUPABASE_KEY"))
+
+
 
 #初期設定
 st.set_page_config(page_title="SafeBox Manager", page_icon="🧰", layout="centered")
