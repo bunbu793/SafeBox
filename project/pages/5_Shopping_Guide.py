@@ -232,7 +232,7 @@ def search_places(category, lat, lng):
 # UI
 # =========================
 
-st.title("🗺️ お店を探す")
+st.title("SafeBox Manager - Shopping Guide")
 
 pref = st.selectbox("都道府県", pref_list)
 

@@ -7,8 +7,6 @@ key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 st.title("SafeBox Manager - Settings")
 
-st.title("SafeBoxManager - settings")
-
 st.write("ここでは、家族コードやパスワードの変更が可能です。")
 
 family_code = st.text_input("家族コード")
