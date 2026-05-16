@@ -16,9 +16,6 @@ supabase = create_client(
     st.secrets["SUPABASE_KEY"]
 )
 
-st.write("URL:", st.secrets.get("SUPABASE_URL"))
-st.write("KEY:", st.secrets.get("SUPABASE_KEY"))
-
 #タイトル
 st.markdown("""
 <h1 translate="no">SafeBox Manager</h1>
