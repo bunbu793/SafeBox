@@ -316,9 +316,9 @@ if search:
         slat = props.get("lat")
         slng = props.get("lon")
 
-        if name not in unique:
-            unique[name] = props
-        
+        if not slat or not slng:
+            continue
+
         dist = calc_distance(lat, lng, slat, slng)
 
         # 2km以上は除外
