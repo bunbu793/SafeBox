@@ -6,96 +6,19 @@ import math
 import json
 from supabase import create_client
 
-# =========================
-# 全国対応：英語 → 日本語住所変換辞書
-# =========================
-
-# 都道府県（47）
-PREF_MAP = {
-    "Hokkaido": "北海道", "Aomori": "青森県", "Iwate": "岩手県", "Miyagi": "宮城県",
-    "Akita": "秋田県", "Yamagata": "山形県", "Fukushima": "福島県",
-    "Ibaraki": "茨城県", "Tochigi": "栃木県", "Gunma": "群馬県",
-    "Saitama": "埼玉県", "Chiba": "千葉県", "Tokyo": "東京都",
-    "Kanagawa": "神奈川県", "Niigata": "新潟県", "Toyama": "富山県",
-    "Ishikawa": "石川県", "Fukui": "福井県", "Yamanashi": "山梨県",
-    "Nagano": "長野県", "Gifu": "岐阜県", "Shizuoka": "静岡県",
-    "Aichi": "愛知県", "Mie": "三重県", "Shiga": "滋賀県",
-    "Kyoto": "京都府", "Osaka": "大阪府", "Hyogo": "兵庫県",
-    "Nara": "奈良県", "Wakayama": "和歌山県", "Tottori": "鳥取県",
-    "Shimane": "島根県", "Okayama": "岡山県", "Hiroshima": "広島県",
-    "Yamaguchi": "山口県", "Tokushima": "徳島県", "Kagawa": "香川県",
-    "Ehime": "愛媛県", "Kochi": "高知県", "Fukuoka": "福岡県",
-    "Saga": "佐賀県", "Nagasaki": "長崎県", "Kumamoto": "熊本県",
-    "Oita": "大分県", "Miyazaki": "宮崎県", "Kagoshima": "鹿児島県",
-    "Okinawa": "沖縄県"
+#=========================
+#翻訳　(英語⇒日本語)
+#=========================
+CATEGORY_JP = {
+    "commercial.supermarket": "スーパー",
+    "commercial.convenience": "コンビニ",
+    "commercial.pharmacy": "ドラッグストア",
+    "commercial.hardware": "ホームセンター",
+    "commercial.shopping_mall": "ショッピングモール",
+    "commercial": "商業施設",
+    "building.commercial": "商業ビル",
+    "building": "建物"
 }
-
-# 丁目
-CHOME_MAP = {
-    "1-chome": "1丁目", "2-chome": "2丁目", "3-chome": "3丁目",
-    "4-chome": "4丁目", "5-chome": "5丁目"
-}
-
-# 通り
-STREET_MAP = {
-    "Dori Avenue": "通", "Dori": "通", "Avenue": "通",
-    "Street": "通り", "Route": "号線"
-}
-
-# 政令指定都市の区
-WARD_MAP = {
-    "Chikusa Ward": "千種区", "Naka Ward": "中区", "Higashi Ward": "東区",
-    "Kita Ward": "北区", "Nishi Ward": "西区", "Meito Ward": "名東区",
-    "Showa Ward": "昭和区", "Mizuho Ward": "瑞穂区", "Atsuta Ward": "熱田区",
-    "Nakagawa Ward": "中川区", "Minami Ward": "南区", "Midori Ward": "緑区",
-    "Moriyama Ward": "守山区", "Tempaku Ward": "天白区"
-}
-
-# =========================
-# 市区町村データ（全国対応）
-# =========================
-df = pd.read_csv(
-    "https://raw.githubusercontent.com/bunbu793/SafeBox/main/japan_city_code.csv",
-    encoding="utf-8"
-)
-
-df.columns = df.columns.str.normalize("NFKC").str.replace("\n", "").str.strip()
-df = df.sort_values(by=["団体コード"], ascending=True).fillna("")
-
-pref_list = df["都道府県名(漢字)"].drop_duplicates().tolist()
-
-city_map = {
-    pref: [c for c in df[df["都道府県名(漢字)"] == pref]["市区町村名(漢字)"].unique().tolist() if c]
-    for pref in pref_list
-}
-
-# 市区町村の英語 → 日本語変換（全国対応）
-CITY_MAP = {}
-for jp in df["市区町村名(漢字)"].unique():
-    eng = jp.replace("市", "").replace("区", "")
-    CITY_MAP[eng] = jp
-
-# =========================
-# 住所変換関数（全国対応）
-# =========================
-def to_japanese_address(address: str) -> str:
-
-    for eng, jp in PREF_MAP.items():
-        address = address.replace(eng, jp)
-
-    for eng, jp in CITY_MAP.items():
-        address = address.replace(eng, jp)
-
-    for eng, jp in WARD_MAP.items():
-        address = address.replace(eng, jp)
-
-    for eng, jp in CHOME_MAP.items():
-        address = address.replace(eng, jp)
-
-    for eng, jp in STREET_MAP.items():
-        address = address.replace(eng, jp)
-
-    return address
 
 # =========================
 # 距離計算
@@ -124,6 +47,24 @@ API_KEY = st.secrets["GEOAPIFY_KEY"]
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
+
+# =========================
+# 市区町村データ
+# =========================
+df = pd.read_csv(
+    "https://raw.githubusercontent.com/bunbu793/SafeBox/main/japan_city_code.csv",
+    encoding="utf-8"
+)
+
+df.columns = df.columns.str.normalize("NFKC").str.replace("\n", "").str.strip()
+df = df.sort_values(by=["団体コード"], ascending=True).fillna("")
+
+pref_list = df["都道府県名(漢字)"].drop_duplicates().tolist()
+
+city_map = {
+    pref: [c for c in df[df["都道府県名(漢字)"] == pref]["市区町村名(漢字)"].unique().tolist() if c]
+    for pref in pref_list
+}
 
 # =========================
 # Geoapify API
@@ -155,6 +96,7 @@ def search_places(category, lat, lng):
 # =========================
 st.title("SafeBox Manager - Shopping Guide")
 
+# ログインチェック
 if "family_code" not in st.session_state:
     st.warning("初めにログインしてください")
     st.stop()
@@ -163,7 +105,7 @@ family_code = st.session_state["family_code"]
 st.success(f"ログイン中：{family_code}")
 
 # =========================
-# チェックリスト連動
+# チェックリスト連動（不足品取得）
 # =========================
 response = supabase.table("checklist").select("*").eq("family_code", family_code).execute()
 
@@ -178,7 +120,7 @@ recommend_map = {
     "飲料水（1人1日3L × 3日分）": "スーパー",
     "非常食（1人3日分）": "スーパー",
     "携帯トイレ（1人3〜5回分 × 3日）": "コンビニ",
-    "モバイルバッテリー": "ホームセンター",
+    "モバイルバッテリー": "家電量販店",
     "懐中電灯": "ホームセンター",
     "乾電池": "コンビニ",
     "救急セット": "ドラッグストア",
@@ -242,6 +184,7 @@ if search:
         props = s["properties"]
         name = props.get("name")
 
+        # 名称不明は除外
         if not name:
             continue
 
@@ -259,8 +202,10 @@ if search:
         props["distance"] = dist
         unique[name] = props
 
+    # 距離順
     unique = dict(sorted(unique.items(), key=lambda item: item[1]["distance"]))
 
+    # 地図ピン
     markers = ""
     for props in unique.values():
         markers += f"&marker=lonlat:{props['lon']},{props['lat']};color:blue;size:small"
@@ -280,23 +225,26 @@ if search:
 
     st.image(map_url)
 
+    # 店舗リスト
     for name, props in unique.items():
         st.write(f"### {name}")
 
         address = props.get("formatted", "")
-        jp_address = to_japanese_address(address)
-        st.write(f"📍 {jp_address}")
+        st.write(f"📍 {address}")
 
         dist_text = f"{props['distance']:.2f} km"
         st.write(f"🚶 距離: {dist_text}")
 
+        # 在庫情報
         brand = props.get("brand")
         opening = props.get("opening_hours")
         if opening == "24/7":
-            opening = "24時間営業"
-
+            opening = "24時間営業"  
         categories = props.get("categories", [])
-        jp_categories = [CATEGORY_JP.get(c, c) for c in categories]
+        jp_categories = []
+
+        for c in categories:
+            jp_categories.append(CATEGORY_JP.get(c, c))  # 辞書にない場合はそのまま
 
         if brand:
             st.write(f"🏪 ブランド: {brand}")
