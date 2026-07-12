@@ -6,19 +6,92 @@ import math
 import json
 from supabase import create_client
 
-#=========================
-#翻訳　(英語⇒日本語)
-#=========================
-CATEGORY_JP = {
-    "commercial.supermarket": "スーパー",
-    "commercial.convenience": "コンビニ",
-    "commercial.pharmacy": "ドラッグストア",
-    "commercial.hardware": "ホームセンター",
-    "commercial.shopping_mall": "ショッピングモール",
-    "commercial": "商業施設",
-    "building.commercial": "商業ビル",
-    "building": "建物"
+# =========================
+# 東京23区（固有名詞）
+# =========================
+TOKYO_WARD_MAP = {
+    "Chiyoda Ward": "千代田区",
+    "Chuo Ward": "中央区",
+    "Minato Ward": "港区",
+    "Shinjuku Ward": "新宿区",
+    "Bunkyo Ward": "文京区",
+    "Taito Ward": "台東区",
+    "Sumida Ward": "墨田区",
+    "Koto Ward": "江東区",
+    "Shinagawa Ward": "品川区",
+    "Meguro Ward": "目黒区",
+    "Ota Ward": "大田区",
+    "Setagaya Ward": "世田谷区",
+    "Shibuya Ward": "渋谷区",
+    "Nakano Ward": "中野区",
+    "Suginami Ward": "杉並区",
+    "Toshima Ward": "豊島区",
+    "Kita Ward": "北区",
+    "Arakawa Ward": "荒川区",
+    "Itabashi Ward": "板橋区",
+    "Nerima Ward": "練馬区",
+    "Adachi Ward": "足立区",
+    "Katsushika Ward": "葛飾区",
+    "Edogawa Ward": "江戸川区"
 }
+
+# =========================
+# その他の簡易日本語化リスト
+# =========================
+ADDRESS_JP = {
+    "Japan": "日本",
+
+    # 都道府県
+    "Tokyo": "東京都",
+    "Aichi": "愛知県",
+    "Osaka": "大阪府",
+    "Hokkaido": "北海道",
+    "Fukuoka": "福岡県",
+
+    # 市区町村（必要な分だけ）
+    "Nagoya": "名古屋市",
+    "Osaka": "大阪市",
+    "Sapporo": "札幌市",
+    "Fukuoka": "福岡市",
+
+    # よく出る地名
+    "Odaiba": "お台場",
+    "Roppongi": "六本木",
+    "Shibuya": "渋谷",
+    "Shinjuku": "新宿",
+
+    # 丁目
+    "1-chome": "1丁目",
+    "2-chome": "2丁目",
+    "3-chome": "3丁目",
+    "4-chome": "4丁目",
+    "5-chome": "5丁目",
+
+    # 通り・道路
+    "Dori Avenue": "通",
+    "Dori": "通",
+    "Avenue": "通",
+    "Street": "通り",
+    "Route": "号線",
+}
+
+# =========================
+# 全国対応：住所変換関数
+# =========================
+def to_japanese_address(address: str):
+
+    # 東京23区（固有名詞）
+    for eng, jp in TOKYO_WARD_MAP.items():
+        address = address.replace(eng, jp)
+
+    # 全国の Ward → 区（自動変換）
+    address = address.replace(" Ward", "区")
+
+    # その他の地名（必要な分だけ）
+    for eng, jp in ADDRESS_JP.items():
+        address = address.replace(eng, jp)
+
+    return address
 
 # =========================
 # 距離計算
@@ -96,7 +169,6 @@ def search_places(category, lat, lng):
 # =========================
 st.title("SafeBox Manager - Shopping Guide")
 
-# ログインチェック
 if "family_code" not in st.session_state:
     st.warning("初めにログインしてください")
     st.stop()
@@ -105,7 +177,7 @@ family_code = st.session_state["family_code"]
 st.success(f"ログイン中：{family_code}")
 
 # =========================
-# チェックリスト連動（不足品取得）
+# チェックリスト連動
 # =========================
 response = supabase.table("checklist").select("*").eq("family_code", family_code).execute()
 
@@ -120,7 +192,7 @@ recommend_map = {
     "飲料水（1人1日3L × 3日分）": "スーパー",
     "非常食（1人3日分）": "スーパー",
     "携帯トイレ（1人3〜5回分 × 3日）": "コンビニ",
-    "モバイルバッテリー": "家電量販店",
+    "モバイルバッテリー": "ホームセンター",
     "懐中電灯": "ホームセンター",
     "乾電池": "コンビニ",
     "救急セット": "ドラッグストア",
@@ -142,7 +214,7 @@ pref = st.selectbox("都道府県", pref_list)
 city_list = city_map.get(pref, [])
 city = st.selectbox("市区町村", city_list)
 
-place = st.text_input("場所名（例：名古屋駅、栄）")
+place = st.text_input("場所名（例：お台場、渋谷、新宿）")
 
 parts = [pref, city, place]
 search_text = " ".join([p for p in parts if p])
@@ -184,7 +256,6 @@ if search:
         props = s["properties"]
         name = props.get("name")
 
-        # 名称不明は除外
         if not name:
             continue
 
@@ -202,10 +273,8 @@ if search:
         props["distance"] = dist
         unique[name] = props
 
-    # 距離順
     unique = dict(sorted(unique.items(), key=lambda item: item[1]["distance"]))
 
-    # 地図ピン
     markers = ""
     for props in unique.values():
         markers += f"&marker=lonlat:{props['lon']},{props['lat']};color:blue;size:small"
@@ -225,26 +294,23 @@ if search:
 
     st.image(map_url)
 
-    # 店舗リスト
     for name, props in unique.items():
         st.write(f"### {name}")
 
         address = props.get("formatted", "")
-        st.write(f"📍 {address}")
+        jp_address = to_japanese_address(address)
+        st.write(f"📍 {jp_address}")
 
         dist_text = f"{props['distance']:.2f} km"
         st.write(f"🚶 距離: {dist_text}")
 
-        # 在庫情報
         brand = props.get("brand")
         opening = props.get("opening_hours")
         if opening == "24/7":
-            opening = "24時間営業"  
-        categories = props.get("categories", [])
-        jp_categories = []
+            opening = "24時間営業"
 
-        for c in categories:
-            jp_categories.append(CATEGORY_JP.get(c, c))  # 辞書にない場合はそのまま
+        categories = props.get("categories", [])
+        jp_categories = [c for c in categories]
 
         if brand:
             st.write(f"🏪 ブランド: {brand}")
