@@ -241,6 +241,10 @@ if search:
         if opening == "24/7":
             opening = "24時間営業"  
         categories = props.get("categories", [])
+        jp_categories = []
+
+        for c in categories:
+            jp_categories.append(CATEGORY_JP.get(c, c))  # 辞書にない場合はそのまま
 
         if brand:
             st.write(f"🏪 ブランド: {brand}")
@@ -248,5 +252,5 @@ if search:
         if opening:
             st.write(f"⏰ 営業時間: {opening}")
 
-        if categories:
-            st.write(f"📦 カテゴリ: {', '.join(categories)}")
+        if jp_categories:
+            st.write(f"📦 カテゴリ: {', '.join(jp_categories)}")
