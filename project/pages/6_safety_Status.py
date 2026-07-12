@@ -17,13 +17,18 @@ if "family_code" not in st.session_state:
 family_code = st.session_state["family_code"]
 st.success(f"ログイン中：{family_code}")
 
-# 名前入力
-st.subheader("あなたの名前を入力してください")
-name = st.text_input("名前（例：太郎、花子）")
+# 家族一覧を取得
+members = supabase.table("family_members").select("*").eq("family_code", family_code).execute()
 
-if not name:
-    st.info("名前を入力してください")
+if not members.data:
+    st.error("家族の名前が登録されていません。設定ページで追加してください。")
     st.stop()
+
+member_names = [m["name"] for m in members.data]
+
+# 名前選択
+st.subheader("あなたの名前を選択してください")
+name = st.selectbox("名前", member_names)
 
 # 絵文字付きステータス
 status_options = {
