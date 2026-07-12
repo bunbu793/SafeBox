@@ -120,7 +120,7 @@ if members.data:
 
         with col2:
             # Streamlit ボタン
-            btn = st.button("🗑️", key=f"delete_{m['id']}")
+            btn = st.button("🗑︎", key=f"delete_{m['id']}")
 
             # ボタンに CSS を当てる（DOM を直接操作）
             st.markdown(
