@@ -6,6 +6,20 @@ import math
 import json
 from supabase import create_client
 
+#=========================
+#翻訳　(英語⇒日本語)
+#=========================
+CATEGORY_JP = {
+    "commercial.supermarket": "スーパー",
+    "commercial.convenience": "コンビニ",
+    "commercial.pharmacy": "ドラッグストア",
+    "commercial.hardware": "ホームセンター",
+    "commercial.shopping_mall": "ショッピングモール",
+    "commercial": "商業施設",
+    "building.commercial": "商業ビル",
+    "building": "建物"
+}
+
 # =========================
 # 距離計算
 # =========================
@@ -221,9 +235,11 @@ if search:
         dist_text = f"{props['distance']:.2f} km"
         st.write(f"🚶 距離: {dist_text}")
 
-        # 在庫情報（簡易）
+        # 在庫情報
         brand = props.get("brand")
         opening = props.get("opening_hours")
+        if opening == "24/7":
+            opening = "24時間営業"  
         categories = props.get("categories", [])
 
         if brand:
