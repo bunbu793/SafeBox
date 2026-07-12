@@ -1,62 +1,49 @@
 import streamlit as st
 import json
-from supabase import create_client
+from supabase import create_client, Client
+
+# Supabase 初期化
+url = st.secrets["supabase_url"]
+key = st.secrets["supabase_key"]
+supabase: Client = create_client(url, key)
 
 st.title("SafeBox Manager - 安否確認")
 
-# Supabase
-url = st.secrets["SUPABASE_URL"]
-key = st.secrets["SUPABASE_KEY"]
-supabase = create_client(url, key)
+# ログイン中の family_code
+family_code = st.session_state.get("family_code", None)
 
-# ログインチェック
-if "family_code" not in st.session_state:
-    st.warning("初めにログインしてください")
+if not family_code:
+    st.error("ログイン情報がありません")
     st.stop()
 
-family_code = st.session_state["family_code"]
-st.success(f"ログイン中：{family_code}")
+st.write(f"ログイン中：{family_code}")
 
-# 家族一覧を取得
+# 家族一覧取得
 members = supabase.table("family_members").select("*").eq("family_code", family_code).execute()
-
-if not members.data:
-    st.error("家族の名前が登録されていません。設定ページで追加してください。")
-    st.stop()
-
-member_names = [m["name"] for m in members.data]
 
 # 名前選択
 st.subheader("あなたの名前を選択してください")
-name = st.selectbox("名前", member_names)
+name = st.selectbox("名前", [m["name"] for m in members.data])
 
-# 絵文字付きステータス
-status_options = {
-    "safe": {"label": "🟢 安全", "emoji": "🟢"},
-    "danger": {"label": "🔴 危険", "emoji": "🔴"},
-    "need_help": {"label": "🟡 要支援", "emoji": "🟡"}
-}
-
+# 安否状況選択
 st.subheader("あなたの安否状況を選択してください")
 
-selected_label = st.radio(
+status_options = {
+    "safe": {"label": "🟩安全", "emoji": "🟩"},
+    "danger": {"label": "🟥危険", "emoji": "🟥"},
+    "need_help": {"label": "🟨要支援", "emoji": "🟨"}
+}
+
+status_key = st.selectbox(
     "安否状況",
-    [v["label"] for v in status_options.values()]
+    list(status_options.keys()),
+    format_func=lambda x: status_options[x]["label"]
 )
 
-# 選択されたキーを取得
-selected_key = None
-for key, v in status_options.items():
-    if v["label"] == selected_label:
-        selected_key = key
-        break
-
-# 保存
+# 保存ボタン
 if st.button("安否状況を送信"):
     data = {
-        "name": name,
-        "status": status_options[selected_key]["label"],
-        "emoji": status_options[selected_key]["emoji"]
+        "status": status_key
     }
 
     supabase.table("safety_status").upsert({
@@ -65,32 +52,31 @@ if st.button("安否状況を送信"):
         "data": json.dumps(data)
     }).execute()
 
-    st.success(f"{data['emoji']} {name}：{data['status']} を送信しました")
+    st.success("安否状況を送信しました")
 
-# 家族の状況一覧
-st.subheader("家族の安否状況一覧")
+st.markdown("---")
 
-response = supabase.table("safety_status").select("*").eq("family_code", family_code).execute()
+# 全員の安否状況表示（カード）
+st.subheader("家族の安否状況")
 
-if response.data:
-    for row in response.data:
-        d = json.loads(row["data"])
+status_rows = supabase.table("safety_status").select("*").eq("family_code", family_code).execute()
 
-        # カードデザイン
-        st.markdown(
-            f"""
-            <div style="
-                padding: 15px;
-                margin-bottom: 15px;
-                border-radius: 12px;
-                background-color: #f5f5f5;
-                border: 1px solid #ddd;
-            ">
-                <h3 style="margin: 0;">{d['emoji']} {d['name']}</h3>
-                <p style="margin: 5px 0 0; font-size: 18px;">{d['status']}</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-else:
-    st.info("まだ安否状況が登録されていません")
+for row in status_rows.data:
+    name = row["name"]
+    status = json.loads(row["data"])["status"]
+
+    icon = status_options[status]["emoji"]
+    label = status_options[status]["label"].replace(icon, "")  # 絵文字抜きの文字だけ
+
+    st.markdown(f"""
+    <div style="
+        padding: 14px;
+        border-radius: 10px;
+        background-color: #ffffff;
+        margin-bottom: 12px;
+        box-shadow: 0px 2px 4px rgba(0,0,0,0.15);
+    ">
+        <div style="font-size: 22px; font-weight: bold;">{name}</div>
+        <div style="font-size: 20px; margin-top: 6px;">{icon}{label}</div>
+    </div>
+    """, unsafe_allow_html=True)
