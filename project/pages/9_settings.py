@@ -86,24 +86,56 @@ if st.button("家族を追加"):
         }).execute()
 
         st.success(f"家族に「{new_name}」を追加しました")
-
-# 家族一覧表示
+        
+# 家族一覧表示 & 削除機能
 st.subheader("登録済みの家族")
 
 members = supabase.table("family_members").select("*").eq("family_code", family_code).execute()
 
+# CSS（赤い2Dゴミ箱ボタン）
+st.markdown("""
+<style>
+.delete-btn {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0px 2px 3px rgba(0,0,0,0.3);
+}
+.delete-btn:hover {
+    background-color: #ff1a1a;
+}
+</style>
+""", unsafe_allow_html=True)
+
 if members.data:
     for m in members.data:
-        st.write(f"- {m['name']}")
+        col1, col2 = st.columns([4, 1])
+
+        with col1:
+            st.write(f"- {m['name']}")
+
+        with col2:
+            # Streamlit ボタンを HTML 風に装飾
+            if st.button(f"🗑️", key=f"delete_{m['id']}", help="削除"):
+                supabase.table("family_members").delete().eq("id", m["id"]).execute()
+                st.success(f"{m['name']} を削除しました")
+                st.rerun()
+
+            # ボタンの CSS を適用
+            st.markdown(
+                f"""
+                <script>
+                var btn = window.parent.document.querySelector('button[kind="secondary"][data-testid="baseButton-delete_{m["id"]}"]');
+                if (btn) {{
+                    btn.classList.add('delete-btn');
+                }}
+                </script>
+                """,
+                unsafe_allow_html=True
+            )
 else:
     st.info("まだ家族が登録されていません")
-
-# ---------------------------
-# ログアウト
-# ---------------------------
-
-st.subheader("ログアウト")
-
-if st.button("ログアウト"):
-    st.session_state.clear()
-    st.success("ログアウトしました")
