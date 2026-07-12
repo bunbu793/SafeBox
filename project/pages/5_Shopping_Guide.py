@@ -192,4 +192,43 @@ if search:
     for props in unique.values():
         markers += f"&marker=lonlat:{props['lon']},{props['lat']};color:blue;size:small"
 
-    center_marker = f"&marker
+    center_marker = f"&marker=lonlat:{lng},{lat};color:red;size:medium"
+
+    map_url = (
+        f"https://maps.geoapify.com/v1/staticmap?"
+        f"style=osm-carto"
+        f"&center=lonlat:{lng},{lat}"
+        f"&zoom=14"
+        f"&size=600x400"
+        f"{center_marker}"
+        f"{markers}"
+        f"&apiKey={API_KEY}"
+    )
+
+    st.image(map_url)
+
+    for name, props in unique.items():
+        st.write(f"### {name}")
+
+        # 住所（翻訳なし）
+        address = props.get("formatted", "")
+        st.write(f"📍 {address}")
+
+        dist_text = f"{props['distance']:.2f} km"
+        st.write(f"🚶 距離: {dist_text}")
+
+        brand = props.get("brand")
+        opening = props.get("opening_hours")
+        if opening == "24/7":
+            opening = "24時間営業"
+
+        categories = props.get("categories", [])
+
+        if brand:
+            st.write(f"🏪 ブランド: {brand}")
+
+        if opening:
+            st.write(f"⏰ 営業時間: {opening}")
+
+        if categories:
+            st.write(f"📦 カテゴリ: {', '.join(categories)}")
