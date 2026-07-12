@@ -21,6 +21,131 @@ CATEGORY_JP = {
 }
 
 # =========================
+# 全国対応：英語 → 日本語住所変換
+# =========================
+
+# 都道府県（47個だけで全国対応）
+PREF_MAP = {
+    "Hokkaido": "北海道",
+    "Aomori": "青森県",
+    "Iwate": "岩手県",
+    "Miyagi": "宮城県",
+    "Akita": "秋田県",
+    "Yamagata": "山形県",
+    "Fukushima": "福島県",
+    "Ibaraki": "茨城県",
+    "Tochigi": "栃木県",
+    "Gunma": "群馬県",
+    "Saitama": "埼玉県",
+    "Chiba": "千葉県",
+    "Tokyo": "東京都",
+    "Kanagawa": "神奈川県",
+    "Niigata": "新潟県",
+    "Toyama": "富山県",
+    "Ishikawa": "石川県",
+    "Fukui": "福井県",
+    "Yamanashi": "山梨県",
+    "Nagano": "長野県",
+    "Gifu": "岐阜県",
+    "Shizuoka": "静岡県",
+    "Aichi": "愛知県",
+    "Mie": "三重県",
+    "Shiga": "滋賀県",
+    "Kyoto": "京都府",
+    "Osaka": "大阪府",
+    "Hyogo": "兵庫県",
+    "Nara": "奈良県",
+    "Wakayama": "和歌山県",
+    "Tottori": "鳥取県",
+    "Shimane": "島根県",
+    "Okayama": "岡山県",
+    "Hiroshima": "広島県",
+    "Yamaguchi": "山口県",
+    "Tokushima": "徳島県",
+    "Kagawa": "香川県",
+    "Ehime": "愛媛県",
+    "Kochi": "高知県",
+    "Fukuoka": "福岡県",
+    "Saga": "佐賀県",
+    "Nagasaki": "長崎県",
+    "Kumamoto": "熊本県",
+    "Oita": "大分県",
+    "Miyazaki": "宮崎県",
+    "Kagoshima": "鹿児島県",
+    "Okinawa": "沖縄県",
+}
+
+# 丁目（全国共通）
+CHOME_MAP = {
+    "1-chome": "1丁目",
+    "2-chome": "2丁目",
+    "3-chome": "3丁目",
+    "4-chome": "4丁目",
+    "5-chome": "5丁目",
+}
+
+# 通り（全国共通）
+STREET_MAP = {
+    "Dori Avenue": "通",
+    "Dori": "通",
+    "Avenue": "通",
+    "Street": "通り",
+    "Route": "号線",
+}
+
+# 政令指定都市の Ward（全国対応）
+WARD_MAP = {
+    "Chikusa Ward": "千種区",
+    "Naka Ward": "中区",
+    "Higashi Ward": "東区",
+    "Kita Ward": "北区",
+    "Nishi Ward": "西区",
+    "Meito Ward": "名東区",
+    "Showa Ward": "昭和区",
+    "Mizuho Ward": "瑞穂区",
+    "Atsuta Ward": "熱田区",
+    "Nakagawa Ward": "中川区",
+    "Minami Ward": "南区",
+    "Midori Ward": "緑区",
+    "Moriyama Ward": "守山区",
+    "Tempaku Ward": "天白区",
+    # 他都市も追加可能
+}
+
+# 市区町村（CSVから自動生成）
+CITY_MAP = {}
+for jp in df["市区町村名(漢字)"].unique():
+    eng = jp.replace("市", "").replace("区", "")
+    CITY_MAP[eng] = jp
+
+# =========================
+# 住所変換関数（全国対応）
+# =========================
+def to_japanese_address(address: str) -> str:
+
+    # 都道府県
+    for eng, jp in PREF_MAP.items():
+        address = address.replace(eng, jp)
+
+    # 市区町村（CSVで全国対応）
+    for eng, jp in CITY_MAP.items():
+        address = address.replace(eng, jp)
+
+    # 区
+    for eng, jp in WARD_MAP.items():
+        address = address.replace(eng, jp)
+
+    # 丁目
+    for eng, jp in CHOME_MAP.items():
+        address = address.replace(eng, jp)
+
+    # 通り
+    for eng, jp in STREET_MAP.items():
+        address = address.replace(eng, jp)
+
+    return address
+
+# =========================
 # 距離計算
 # =========================
 def calc_distance(lat1, lon1, lat2, lon2):
