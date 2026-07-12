@@ -234,6 +234,12 @@ def search_places(category, lat, lng):
 
 st.title("SafeBox Manager - Shopping Guide")
 
+# ログインチェック
+if "family_code" not in st.session_state:
+    st.warning("初めにログインしてください")
+    st.stop()
+
+st.success(f"ログイン中：{st.session_state['family_code']}")
 pref = st.selectbox("都道府県", pref_list)
 
 # =========================
