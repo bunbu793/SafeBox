@@ -136,9 +136,8 @@ search_text = " ".join([p for p in parts if p])
 category_map = {
     "スーパー": "commercial.supermarket",
     "コンビニ": "commercial.convenience",
-    "カフェ": "catering.cafe",
-    "ファミレス": "catering.restaurant",
-    "ファストフード": "catering.fast_food",
+    "ドラッグストア": "commercial.pharmacy",
+    "ホームセンター": "commercial.hardware",
     "ショッピングモール": "commercial.shopping_mall",
 }
 
