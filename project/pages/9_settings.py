@@ -86,7 +86,7 @@ if st.button("家族を追加"):
         }).execute()
 
         st.success(f"家族に「{new_name}」を追加しました")
-        
+
 # 家族一覧表示 & 削除機能
 st.subheader("登録済みの家族")
 
@@ -95,18 +95,18 @@ members = supabase.table("family_members").select("*").eq("family_code", family_
 # CSS（赤い2Dゴミ箱ボタン）
 st.markdown("""
 <style>
-.delete-btn {
-    background-color: #ff4d4d;
-    color: white;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 18px;
-    box-shadow: 0px 2px 3px rgba(0,0,0,0.3);
+.red-trash-btn {
+    background-color: #ff4d4d !important;
+    color: white !important;
+    border: none !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-size: 18px !important;
+    box-shadow: 0px 2px 3px rgba(0,0,0,0.3) !important;
 }
-.delete-btn:hover {
-    background-color: #ff1a1a;
+.red-trash-btn:hover {
+    background-color: #ff1a1a !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -119,23 +119,24 @@ if members.data:
             st.write(f"- {m['name']}")
 
         with col2:
-            # Streamlit ボタンを HTML 風に装飾
-            if st.button(f"🗑️", key=f"delete_{m['id']}", help="削除"):
-                supabase.table("family_members").delete().eq("id", m["id"]).execute()
-                st.success(f"{m['name']} を削除しました")
-                st.rerun()
+            # Streamlit ボタン
+            btn = st.button("🗑️", key=f"delete_{m['id']}")
 
-            # ボタンの CSS を適用
+            # ボタンに CSS を当てる（DOM を直接操作）
             st.markdown(
                 f"""
                 <script>
-                var btn = window.parent.document.querySelector('button[kind="secondary"][data-testid="baseButton-delete_{m["id"]}"]');
-                if (btn) {{
-                    btn.classList.add('delete-btn');
-                }}
+                const btns = window.parent.document.querySelectorAll('button[data-testid="baseButton-delete_{m["id"]}"]');
+                btns.forEach(btn => btn.classList.add('red-trash-btn'));
                 </script>
                 """,
                 unsafe_allow_html=True
             )
+
+            if btn:
+                supabase.table("family_members").delete().eq("id", m["id"]).execute()
+                st.success(f"{m['name']} を削除しました")
+                st.rerun()
 else:
     st.info("まだ家族が登録されていません")
+
