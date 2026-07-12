@@ -11,7 +11,11 @@ supabase = create_client(url, key)
 
 st.title("SafeBox Manager - Settings")
 
-st.write("ここでは、家族コードやパスワードの変更が可能です。")
+st.write("ここでは、家族コードやパスワードの変更、家族の名前登録が可能です。")
+
+# ---------------------------
+# パスワード再発行
+# ---------------------------
 
 def generate_reset_token():
     return secrets.token_urlsafe(32)
@@ -47,7 +51,6 @@ st.subheader("パスワード再発行")
 email = st.text_input("登録メールアドレス")
 
 if st.button("再発行メールを送る"):
-
     token = generate_reset_token()
     reset_link = "https://your-app-url/reset?token=dummy"
     save_reset_token(email, token)
@@ -58,3 +61,49 @@ if st.button("再発行メールを送る"):
         st.success("再発行メールを送信しました")
     else:
         st.error("メール送信に失敗しました")
+
+# ---------------------------
+# 家族の名前登録
+# ---------------------------
+
+st.subheader("家族の名前を追加")
+
+if "family_code" not in st.session_state:
+    st.warning("ログインしてください")
+    st.stop()
+
+family_code = st.session_state["family_code"]
+
+new_name = st.text_input("追加する家族の名前（例：侃、母、父、兄、姉）")
+
+if st.button("家族を追加"):
+    if new_name.strip() == "":
+        st.error("名前を入力してください")
+    else:
+        supabase.table("family_members").insert({
+            "family_code": family_code,
+            "name": new_name
+        }).execute()
+
+        st.success(f"家族に「{new_name}」を追加しました")
+
+# 家族一覧表示
+st.subheader("登録済みの家族")
+
+members = supabase.table("family_members").select("*").eq("family_code", family_code).execute()
+
+if members.data:
+    for m in members.data:
+        st.write(f"- {m['name']}")
+else:
+    st.info("まだ家族が登録されていません")
+
+# ---------------------------
+# ログアウト
+# ---------------------------
+
+st.subheader("ログアウト")
+
+if st.button("ログアウト"):
+    st.session_state.clear()
+    st.success("ログアウトしました")

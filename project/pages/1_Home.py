@@ -44,8 +44,3 @@ menu_item("💬 チャット", "pages/5_Chat.py")
 menu_item("🆘 安否確認", "pages/6_safety_Status.py")
 menu_item("🗺️ 避難所マップ", "pages/7_Shelters_Map.py")
 menu_item("❓ 防災クイズ", "pages/8_Quiz.py")
-
-# ログアウト
-if st.button("ログアウト"):
-    st.session_state.clear()
-    st.success("ログアウトしました")
