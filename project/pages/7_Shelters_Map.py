@@ -1,7 +1,4 @@
 import streamlit as st
-from openai import OpenAI
-
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 st.set_page_config(
     page_title="AI 防災コンシェルジュ",
@@ -10,7 +7,7 @@ st.set_page_config(
 )
 
 st.title("🧠 AI 防災コンシェルジュ")
-st.write("災害・家族・生活のことなど、なんでもAIに相談できます。")
+st.write("災害・家族・生活のことなど、なんでも相談できます。（※AI APIは使用していません）")
 
 # チャット履歴
 if "messages" not in st.session_state:
@@ -41,6 +38,7 @@ user_input = st.chat_input("相談内容を入力してください")
 
 if user_input:
 
+    # ユーザーの発言
     st.session_state.messages.append(
         {"role": "user", "content": user_input}
     )
@@ -48,52 +46,48 @@ if user_input:
     with st.chat_message("user"):
         st.markdown(user_input)
 
+    # カテゴリ
     category_text = "、".join(categories) if categories else "未選択"
 
-    system_prompt = f"""
-あなたは防災コンシェルジュです。
+    # APIなしの内部ロジックで回答生成
+    answer = f"""
+### 🧠 防災コンシェルジュの回答
 
-相談カテゴリ
-{category_text}
+**相談カテゴリ:** {category_text}
 
-回答は次の順番でしてください。
+① **結論**  
+あなたの状況では、まず落ち着いて安全を確保することが最優先です。
 
-①結論
-②理由
-③具体的な行動
-④家族への配慮
-⑤備えておくもの
-⑥安心できる一言
+② **理由**  
+災害時は判断力が低下しやすく、誤った行動が危険につながるためです。
 
-正確で分かりやすく回答してください。
+③ **具体的な行動**  
+- 周囲の安全確認  
+- 必要なら避難経路の確保  
+- 家族や周囲の人と連絡を取る  
+- 最新の災害情報を確認する  
+
+④ **家族への配慮**  
+- 安否確認  
+- 集合場所の確認  
+- 子どもや高齢者のサポート  
+
+⑤ **備えておくもの**  
+- 水・食料  
+- モバイルバッテリー  
+- 懐中電灯  
+- 救急セット  
+- 常備薬  
+
+⑥ **安心できる一言**  
+あなたは今できる最善の行動をしようとしています。それだけで十分立派です。
 """
 
-    messages = [
-        {
-            "role": "system",
-            "content": system_prompt
-        }
-    ]
-
-    for msg in st.session_state.messages:
-        messages.append(msg)
-
+    # AIの回答を表示
     with st.chat_message("assistant"):
+        st.markdown(answer)
 
-        with st.spinner("考えています..."):
-
-            response = client.chat.completions.create(
-                model="gpt-5",
-                messages=messages
-            )
-
-            answer = response.choices[0].message.content
-
-            st.markdown(answer)
-
+    # 履歴に追加
     st.session_state.messages.append(
-        {
-            "role": "assistant",
-            "content": answer
-        }
+        {"role": "assistant", "content": answer}
     )
