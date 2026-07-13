@@ -1,18 +1,29 @@
 import streamlit as st
-from openai import OpenAI
+from ollama import Ollama
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+user_input = st.chat_input("相談内容を入力してください")
 
-st.title("SafeBox AI チャット")
+if user_input:
 
-user_input = st.text_input("質問を入力してね")
+    st.session_state["messages"].append(
+        {"role": "user", "content": user_input}
+    )
 
-if st.button("送信"):
-    if user_input:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "user", "content": user_input}
-            ]
-        )
-        st.write(response.choices[0].message["content"])
+    with st.chat_message("user"):
+        st.write(user_input)
+
+    response = ollama.chat(
+        model="gemma3",
+        messages=[
+            {"role": "user", "content": user_input}
+        ]
+    )
+
+    answer = response["message"]["content"]
+
+    with st.chat_message("assistant"):
+        st.write(answer)
+
+    st.session_state["messages"].append(
+        {"role": "assistant", "content": answer}
+    )
