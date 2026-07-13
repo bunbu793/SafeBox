@@ -21,6 +21,11 @@ st.write(f"ログイン中：{family_code}")
 # 家族一覧取得
 members = supabase.table("family_members").select("*").eq("family_code", family_code).execute()
 
+# ★ 家族が登録されていない場合
+if len(members.data) == 0:
+    st.error("家族が登録されていません。\n最後のページ『設定』から家族を追加してください。")
+    st.stop()
+
 # 名前選択
 st.subheader("あなたの名前を選択してください")
 name = st.selectbox("名前", [m["name"] for m in members.data])
@@ -29,9 +34,8 @@ name = st.selectbox("名前", [m["name"] for m in members.data])
 st.subheader("あなたの安否状況を選択してください")
 
 status_options = {
-    "safe": {"label": "🟩 安全", "emoji": "🟩"},
-    "danger": {"label": "🟥 危険", "emoji": "🟥"},
-    "need_help": {"label": "🟨 要支援", "emoji": "🟨"},
+    "No damage": {"label": "🟩 被害なし", "emoji": "🟩"},
+    "Damage": {"label": "🟥 被害あり", "emoji": "🟥"},
 }
 
 status_key = st.selectbox(
