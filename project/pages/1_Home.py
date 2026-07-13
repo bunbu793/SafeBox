@@ -39,8 +39,9 @@ def menu_item(title, page_path):
 
 menu_item("👨‍👩‍👧 家族構成登録・確認", "pages/2_family.py")
 menu_item("📋 チェックリスト・アドバイス", "pages/3_Checklist_Advice.py")
-menu_item("🔑 ログインコード管理", "pages/4_Family_Code.py")
-menu_item("💬 チャット", "pages/5_Chat.py")
+menu_item("📝 メモ・ノート", "pages/4_Family_Code.py")
+menu_item("🗺️ お店を探す", "pages/5_Shopping_Guide.py")
 menu_item("🆘 安否確認", "pages/6_safety_Status.py")
-menu_item("🗺️ 避難所マップ", "pages/7_Shelters_Map.py")
+menu_item(" 避難場所", "pages/7_Shelters_Map.py")
 menu_item("❓ 防災クイズ", "pages/8_Quiz.py")
+menu_item("⚙️ 設定", "pages/9_settings.py")
