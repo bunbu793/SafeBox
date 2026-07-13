@@ -34,14 +34,12 @@ categories = st.multiselect(
     ]
 )
 
-user_input = st.chat_input("例：地震が不安です / 家族と離れたらどうする？ / 避難所はどこ？")
+user_input = st.chat_input("例：何を買えばいい？ / 地震が怖い / 避難所はどこ？")
 
 if user_input:
 
     # ユーザーの発言
-    st.session_state.messages.append(
-        {"role": "user", "content": user_input}
-    )
+    st.session_state.messages.append({"role": "user", "content": user_input})
 
     with st.chat_message("user"):
         st.markdown(user_input)
@@ -49,17 +47,28 @@ if user_input:
     # カテゴリ
     category_text = "、".join(categories) if categories else "未選択"
 
-    # ユーザーの相談内容を引用してチャット感を出す
-    intro = f"「{user_input}」という相談ですね。まずは状況を整理しましょう。"
+    # --- 疑似AIロジック（相談内容で回答が変わる） ---
+    text = user_input.lower()
 
-    # APIなしの内部ロジックで回答生成
+    if "買" in text or "備蓄" in text or "必要" in text:
+        main = "まずは水・食料・ライト・モバイルバッテリーの4つを優先しましょう。"
+    elif "地震" in text:
+        main = "まずは机の下など安全な場所で身を守ることが最優先です。"
+    elif "避難所" in text or "どこ" in text:
+        main = "自治体が指定する避難所を事前に確認し、最短ルートを把握しておきましょう。"
+    elif "家族" in text or "連絡" in text:
+        main = "家族とは集合場所と連絡手段を事前に決めておくことが重要です。"
+    elif "怖" in text or "不安" in text:
+        main = "不安を感じるのは自然なことです。まずは情報を整理し、できる準備から始めましょう。"
+    else:
+        main = "まずは状況を整理し、安全を確保することが大切です。"
+
+    # --- 返答テンプレ ---
     answer = f"""
-### 🧠 防災コンシェルジュ
-
-{intro}
+「{user_input}」という相談ですね。
 
 ① **結論**  
-まずは落ち着いて、あなた自身の安全を確保しましょう。
+{main}
 
 ② **理由**  
 災害時は焦りが危険につながるため、冷静な判断が重要です。
@@ -86,11 +95,8 @@ if user_input:
 あなたの不安は自然なものです。一緒に安全を確保していきましょう。
 """
 
-    # AIの回答を表示
+    # AIの回答
     with st.chat_message("assistant"):
         st.markdown(answer)
 
-    # 履歴に追加
-    st.session_state.messages.append(
-        {"role": "assistant", "content": answer}
-    )
+    st.session_state.messages.append({"role": "assistant", "content": answer})
