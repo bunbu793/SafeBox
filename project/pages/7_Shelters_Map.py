@@ -45,7 +45,6 @@ if user_input:
         st.markdown(user_input)
 
     text = user_input.lower()
-    category_text = "、".join(categories) if categories else "未選択"
 
     # --- ① 結論（相談内容で変化） ---
     if "買" in text or "備蓄" in text:
@@ -139,7 +138,7 @@ if user_input:
     else:
         comfort = "できることから一つずつ進めれば、必ず安全に近づきます。"
 
-    # --- まとめ ---
+    # --- まとめ（カテゴリは表示しない） ---
     answer = f"""
 「{user_input}」という相談ですね。
 
