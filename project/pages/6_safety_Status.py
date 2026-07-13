@@ -63,9 +63,9 @@ for row in status_rows.data:
     name = row["name"]
     status = json.loads(row["data"]).get("status", None)
 
-    # ★ 防御処理：存在しないステータスはスキップ
+    # ★ 壊れたデータ（🟩 安全など）はスキップ
     if status not in status_options:
-        st.warning(f"{name} の安否状況データが不正です（status={status}）")
+        st.warning(f"{name} の安否状況データが不足です (status={status})")
         continue
 
     icon = status_options[status]["emoji"]
