@@ -1,49 +1,171 @@
 import streamlit as st
-from openai import OpenAI
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+st.set_page_config(
+    page_title="SafeBox 防災コンシェルジュ",
+    page_icon="🤖",
+    layout="wide"
+)
+
+st.title("🤖 SafeBox 防災コンシェルジュ")
+st.write("知りたい内容を選択してください。")
+
+# -------------------------
+# 回答データ
+# -------------------------
+
+answers = {
+    "地震": """## 🌍 地震
+
+### ① 結論
+まずは身の安全を確保してください。
+
+### ② 理由
+家具の転倒や落下物が最も危険です。
+
+### ③ 行動
+・机の下へ隠れる
+・頭を守る
+・揺れが収まってから避難する
+
+### ④ 家族
+家族の安否を確認しましょう。
+
+### ⑤ 備蓄
+水・非常食・懐中電灯
+
+### ⑥ 一言
+落ち着いて行動することが大切です。
+""",
+
+    "津波": """## 🌊 津波
+
+### ① 結論
+すぐに高台へ避難してください。
+
+### ② 理由
+津波は非常に速く到達します。
+
+### ③ 行動
+・海岸から離れる
+・徒歩で高台へ
+
+### ④ 家族
+避難場所を事前に決めておきましょう。
+
+### ⑤ 備蓄
+防寒具・飲料水
+
+### ⑥ 一言
+警報が出たら迷わず避難しましょう。
+""",
+
+    "台風": """## 🌀 台風
+
+・不要不急の外出は控えましょう。
+・窓やベランダを確認しましょう。
+・停電に備えて充電してください。
+""",
+
+    "避難所": """## 🏫 避難所
+
+・自治体指定避難所を利用してください。
+・避難経路を事前に確認しましょう。
+""",
+
+    "備蓄": """## 📦 備蓄
+
+おすすめ
+
+・水（3〜7日分）
+・非常食
+・懐中電灯
+・乾電池
+・モバイルバッテリー
+・救急セット
+""",
+
+    "家族": """## 👨‍👩‍👧
+
+・集合場所を決める
+・連絡方法を決める
+・災害伝言ダイヤル171を活用
+""",
+
+    "ペット": """## 🐶
+
+・ペットフード
+・リード
+・キャリーケース
+・ワクチン証明書
+""",
+
+    "火災": """## 🔥 火災
+
+煙を吸わないよう低い姿勢で避難してください。
+エレベーターは使わないでください。
+""",
+
+    "洪水": """## 🌧️ 洪水
+
+浸水した道路は歩かず、高い場所へ避難してください。
+"""
+}
+
+# -------------------------
+# チャット履歴
+# -------------------------
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# 過去の会話を表示
 for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
+    with st.chat_message(msg["role"], avatar=msg["avatar"]):
         st.markdown(msg["content"])
 
-user_input = st.chat_input("相談内容を入力してください")
+# -------------------------
+# 選択
+# -------------------------
 
-if user_input:
+topic = st.selectbox(
+    "相談内容を選択してください",
+    [
+        "選択してください",
+        "地震",
+        "津波",
+        "台風",
+        "洪水",
+        "火災",
+        "避難所",
+        "備蓄",
+        "家族",
+        "ペット"
+    ]
+)
 
-    st.session_state.messages.append(
-        {"role": "user", "content": user_input}
-    )
+if st.button("相談する"):
 
-    with st.chat_message("user"):
-        st.markdown(user_input)
+    if topic == "選択してください":
+        st.warning("相談内容を選択してください。")
 
-    with st.chat_message("assistant"):
+    else:
 
-        with st.spinner("考えています..."):
+        user_text = f"{topic}について知りたい"
 
-            response = client.chat.completions.create(
-                model="gpt-5",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "あなたは親切な防災コンシェルジュです。"
-                    },
-                    *st.session_state.messages
-                ]
-            )
+        st.session_state.messages.append({
+            "role": "user",
+            "content": user_text,
+            "avatar": "🧑"
+        })
 
-            answer = response.choices[0].message.content
+        answer = answers.get(
+            topic,
+            "申し訳ありません。この内容は現在準備中です。"
+        )
 
-            st.markdown(answer)
-
-    st.session_state.messages.append(
-        {
+        st.session_state.messages.append({
             "role": "assistant",
-            "content": answer
-        }
-    )
+            "content": answer,
+            "avatar": "🤖"
+        })
+
+        st.rerun()
