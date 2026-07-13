@@ -5,11 +5,11 @@ from supabase import create_client, Client
 # Supabase 初期化
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
-supabase = create_client(url, key)
+supabase: Client = create_client(url, key)
 
 st.title("SafeBox Manager - 安否確認")
 
-# ログイン中の family_code
+# family_code の取得
 family_code = st.session_state.get("family_code", None)
 
 if not family_code:
@@ -29,9 +29,9 @@ name = st.selectbox("名前", [m["name"] for m in members.data])
 st.subheader("あなたの安否状況を選択してください")
 
 status_options = {
-    "safe": {"label": "🟩安全", "emoji": "🟩"},
-    "danger": {"label": "🟥危険", "emoji": "🟥"},
-    "need_help": {"label": "🟨要支援", "emoji": "🟨"}
+    "safe": {"label": "🟩 安全", "emoji": "🟩"},
+    "danger": {"label": "🟥 危険", "emoji": "🟥"},
+    "need_help": {"label": "🟨 要支援", "emoji": "🟨"},
 }
 
 status_key = st.selectbox(
@@ -42,9 +42,7 @@ status_key = st.selectbox(
 
 # 保存ボタン
 if st.button("安否状況を送信"):
-    data = {
-        "status": status_key
-    }
+    data = {"status": status_key}
 
     supabase.table("safety_status").upsert({
         "family_code": family_code,
@@ -56,27 +54,35 @@ if st.button("安否状況を送信"):
 
 st.markdown("---")
 
-# 全員の安否状況表示（カード）
+# 全員の安否状況表示
 st.subheader("家族の安否状況")
 
 status_rows = supabase.table("safety_status").select("*").eq("family_code", family_code).execute()
 
 for row in status_rows.data:
     name = row["name"]
-    status = json.loads(row["data"])["status"]
+    status = json.loads(row["data"]).get("status", None)
+
+    # ★ 防御処理：存在しないステータスはスキップ
+    if status not in status_options:
+        st.warning(f"{name} の安否状況データが不正です（status={status}）")
+        continue
 
     icon = status_options[status]["emoji"]
-    label = status_options[status]["label"].replace(icon, "")  # 絵文字抜きの文字だけ
+    label = status_options[status]["label"].replace(icon, "")
 
-    st.markdown(f"""
-    <div style="
-        padding: 14px;
-        border-radius: 10px;
-        background-color: #ffffff;
-        margin-bottom: 12px;
-        box-shadow: 0px 2px 4px rgba(0,0,0,0.15);
-    ">
-        <div style="font-size: 22px; font-weight: bold;">{name}</div>
-        <div style="font-size: 20px; margin-top: 6px;">{icon}{label}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <div style="
+            padding: 14px;
+            border-radius: 10px;
+            background-color: #ffffff;
+            margin-bottom: 12px;
+            box-shadow: 0px 2px 4px rgba(0,0,0,0.15);
+        ">
+            <div style="font-size: 22px; font-weight: bold;">{name}</div>
+            <div style="font-size: 20px; margin-top: 6px;">{icon}{label}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
