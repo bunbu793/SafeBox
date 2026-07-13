@@ -34,7 +34,7 @@ categories = st.multiselect(
     ]
 )
 
-user_input = st.chat_input("例：何を買えばいい？ / 地震が怖い / 避難所はどこ？")
+user_input = st.chat_input("例：どうすればいい？ / 地震が怖い / 何を買えばいい？ / 避難所はどこ？")
 
 if user_input:
 
@@ -46,7 +46,7 @@ if user_input:
 
     text = user_input.lower()
 
-    # --- ① 結論（相談内容で変化） ---
+    # --- ① 結論 ---
     if "買" in text or "備蓄" in text:
         conclusion = "まずは水・食料・ライト・モバイルバッテリーを優先して揃えましょう。"
     elif "地震" in text:
@@ -58,7 +58,7 @@ if user_input:
     else:
         conclusion = "まずは落ち着いて状況を整理し、安全を確保しましょう。"
 
-    # --- ② 理由（相談内容で変化） ---
+    # --- ② 理由 ---
     if "怖" in text or "不安" in text:
         reason = "不安を感じると判断力が低下するため、まずは心を落ち着けることが大切です。"
     elif "買" in text or "備蓄" in text:
@@ -66,7 +66,7 @@ if user_input:
     else:
         reason = "災害時は焦りが危険につながるため、冷静な判断が重要です。"
 
-    # --- ③ 具体的な行動（カテゴリで変化） ---
+    # --- ③ 具体的な行動 ---
     if "避難所・避難経路" in categories:
         actions = """
 - 最寄りの避難所を確認  
@@ -79,7 +79,7 @@ if user_input:
 - モバイルバッテリーを充電  
 - 懐中電灯の電池確認  
 """
-    elif "災害時の行動（地震・台風・火災）" in categories:
+    elif "災害時の行動（地震・台風・火災）" in categories or "地震" in text:
         actions = """
 - 周囲の安全確認  
 - 家具の転倒防止  
@@ -93,7 +93,7 @@ if user_input:
 - 最新の災害情報を確認  
 """
 
-    # --- ④ 家族への配慮（カテゴリで変化） ---
+    # --- ④ 家族への配慮 ---
     if "家族との連絡・安否確認" in categories or "家族" in text:
         family = """
 - 家族の安否確認  
@@ -106,7 +106,7 @@ if user_input:
 - 集合場所を確認する  
 """
 
-    # --- ⑤ 備えておくもの（カテゴリで変化） ---
+    # --- ⑤ 備えておくもの ---
     if "食料・水（備蓄）" in categories or "買" in text:
         items = """
 - 水・食料  
@@ -132,7 +132,7 @@ if user_input:
 - モバイルバッテリー  
 """
 
-    # --- ⑥ 安心できる一言（相談内容で変化） ---
+    # --- ⑥ 安心できる一言 ---
     if "怖" in text or "不安" in text or "メンタルケア（不安・怖い）" in categories:
         comfort = "あなたの不安は自然なものです。ゆっくり準備していけば大丈夫です。"
     else:
