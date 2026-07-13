@@ -1,159 +1,99 @@
 import streamlit as st
+from openai import OpenAI
 
-# -----------------------------
-# ページ設定
-# -----------------------------
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
 st.set_page_config(
-    page_title="SafeBox 防災コンシェルジュ",
-    page_icon="🤖",
+    page_title="AI 防災コンシェルジュ",
+    page_icon="🧠",
     layout="wide"
 )
 
-st.title("🤖 SafeBox 防災コンシェルジュ")
-st.write("災害時にどう行動すればいいか、すぐに確認できます。")
+st.title("🧠 AI 防災コンシェルジュ")
+st.write("災害・家族・生活のことなど、なんでもAIに相談できます。")
 
-st.info("""
-### このアプリでできること
-- 地震・津波・台風などの災害ごとの行動指針  
-- 家族の安否確認や備蓄のポイント  
-- 避難所の基本情報  
-""")
-
-# -----------------------------
-# 回答データ
-# -----------------------------
-answers = {
-    "地震": """
-### 🌍 地震のときはこう動く
-
-#### ① まず身を守る
-- 机の下に入る  
-- 頭を守る  
-- 揺れが収まるまで動かない  
-
-#### ② 揺れが止まったら
-- 火の始末  
-- 家族の安否確認  
-- 避難情報を確認  
-
-#### ③ 備蓄
-- 水・食料  
-- 懐中電灯  
-- モバイルバッテリー  
-""",
-
-    "津波": """
-### 🌊 津波のときはこう動く
-
-- すぐに高台へ避難  
-- 海岸から離れる  
-- 車より徒歩  
-- 警報解除まで戻らない  
-""",
-
-    "台風": """
-### 🌀 台風のときはこう動く
-
-- 窓を補強  
-- ベランダを片付ける  
-- 充電を済ませる  
-- 不要不急の外出を控える  
-""",
-
-    "火災": """
-### 🔥 火災のときはこう動く
-
-- 低い姿勢で煙を避ける  
-- エレベーターは使わない  
-- 119番へ通報  
-""",
-
-    "洪水": """
-### 🌧 洪水のときはこう動く
-
-- 川へ近づかない  
-- 浸水道路を歩かない  
-- 高い場所へ避難  
-""",
-
-    "避難所": """
-### 🏫 避難所について
-
-- 自治体指定避難所へ  
-- 避難経路を事前確認  
-- 非常持出袋を持参  
-""",
-
-    "備蓄": """
-### 📦 備蓄の基本
-
-- 水（3〜7日分）  
-- 非常食  
-- 懐中電灯  
-- 電池  
-- 救急セット  
-- モバイルバッテリー  
-""",
-
-    "家族": """
-### 👨‍👩‍👧 家族の安否確認
-
-- 集合場所を決める  
-- 連絡方法を決める  
-- 171を活用する  
-"""
-}
-
-# -----------------------------
 # チャット履歴
-# -----------------------------
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# -----------------------------
-# 履歴表示
-# -----------------------------
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"], avatar=msg.get("avatar")):
-        st.markdown(msg["content"])
+# 表示
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-# -----------------------------
-# 選択
-# -----------------------------
-topic = st.selectbox(
-    "相談したい内容を選んでください",
-    ["選択してください"] + list(answers.keys())
+st.subheader("相談カテゴリ（複数選択OK）")
+
+categories = st.multiselect(
+    "カテゴリ",
+    [
+        "避難場所",
+        "災害時の行動",
+        "家族の安全",
+        "持ち物・備蓄",
+        "メンタルケア",
+        "食料・水",
+        "生活の不安",
+        "その他"
+    ]
 )
 
-# -----------------------------
-# 相談ボタン
-# -----------------------------
-if st.button("🤖 相談する", use_container_width=True):
+user_input = st.chat_input("相談内容を入力してください")
 
-    if topic == "選択してください":
-        st.warning("相談内容を選択してください。")
-    else:
-        user_text = f"{topic}について教えて"
+if user_input:
 
-        st.session_state.messages.append({
-            "role": "user",
-            "content": user_text,
-            "avatar": "🧑"
-        })
+    st.session_state.messages.append(
+        {"role": "user", "content": user_input}
+    )
 
-        st.session_state.messages.append({
+    with st.chat_message("user"):
+        st.markdown(user_input)
+
+    category_text = "、".join(categories) if categories else "未選択"
+
+    system_prompt = f"""
+あなたは防災コンシェルジュです。
+
+相談カテゴリ
+{category_text}
+
+回答は次の順番でしてください。
+
+①結論
+②理由
+③具体的な行動
+④家族への配慮
+⑤備えておくもの
+⑥安心できる一言
+
+正確で分かりやすく回答してください。
+"""
+
+    messages = [
+        {
+            "role": "system",
+            "content": system_prompt
+        }
+    ]
+
+    for msg in st.session_state.messages:
+        messages.append(msg)
+
+    with st.chat_message("assistant"):
+
+        with st.spinner("考えています..."):
+
+            response = client.chat.completions.create(
+                model="gpt-5",
+                messages=messages
+            )
+
+            answer = response.choices[0].message.content
+
+            st.markdown(answer)
+
+    st.session_state.messages.append(
+        {
             "role": "assistant",
-            "content": answers[topic],
-            "avatar": "🤖"
-        })
-
-        st.rerun()
-
-# -----------------------------
-# 履歴削除
-# -----------------------------
-st.divider()
-
-if st.button("🗑 チャット履歴を削除"):
-    st.session_state.messages = []
-    st.rerun()
+            "content": answer
+        }
+    )
