@@ -3,9 +3,9 @@ import json
 from supabase import create_client, Client
 
 # Supabase 初期化
-url = st.secrets["supabase_url"]
-key = st.secrets["supabase_key"]
-supabase: Client = create_client(url, key)
+url = st.secrets["SUPABASE_URL"]
+key = st.secrets["SUPABASE_KEY"]
+supabase = create_client(url, key)
 
 st.title("SafeBox Manager - 安否確認")
 
