@@ -1,5 +1,9 @@
 import streamlit as st
-from ollama import Ollama
+import ollama
+
+# 初回だけ履歴を作成
+if "messages" not in st.session_state:
+    st.session_state["messages"] = []
 
 user_input = st.chat_input("相談内容を入力してください")
 
