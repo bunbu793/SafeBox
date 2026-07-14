@@ -146,4 +146,7 @@ body{
 
 </div>
 
-""", unsafe_allow_html=True)
+</html>
+"""
+
+components.html(html, height=700, scrolling=False)
