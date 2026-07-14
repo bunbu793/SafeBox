@@ -2,8 +2,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(
-    page_title="Totem Effect",
-    page_icon="✨",
+    page_title="Totem X Effect",
+    page_icon="❌",
     layout="centered"
 )
 
@@ -12,7 +12,7 @@ html = """
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Totem Effect</title>
+<title>Totem X Effect</title>
 
 <style>
 
@@ -29,10 +29,13 @@ body{
     display:flex;
     justify-content:center;
     align-items:center;
+
+    /* 3D回転が見えるようにする */
+    perspective: 900px;
 }
 
 /* ===========================
-   トーテム ○（輪っか）
+   トーテム ✖（図形）
 =========================== */
 
 .totem{
@@ -40,14 +43,15 @@ body{
     width:160px;
     height:160px;
 
-    /* 出現 → 浮遊 → 消失 */
+    transform-style: preserve-3d;
+
     animation:
         spinIn 3.2s ease-out,
         float 4s ease-in-out infinite 3.2s,
         vanish 1.6s ease-in-out 7.0s forwards;
 }
 
-/* 真ん中の◯（穴あき輪っか） */
+/* ✖ を図形で作る（裏返っても見える） */
 .core{
     position:absolute;
     left:50%;
@@ -55,20 +59,36 @@ body{
     transform:translate(-50%,-50%);
     width:100px;
     height:100px;
-    border-radius:50%;
-    border:12px solid #00ff88;   /* 線は濃いまま */
-    background:transparent;
+}
 
+.core::before,
+.core::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:100px;
+    height:14px;
+    background:#ff2b2b;
     box-shadow:
-        0 0 25px #00ff88,
-        0 0 55px #ffee55,
-        0 0 90px rgba(255,255,120,.9);
+        0 0 20px #ff2b2b,
+        0 0 40px #ff7b00,
+        0 0 70px rgba(255,120,0,.9);
+    transform-origin:center;
+}
 
-    animation:pulse 2.4s ease-in-out infinite;
+/* 斜め線1 */
+.core::before{
+    transform:translate(-50%,-50%) rotate(45deg);
+}
+
+/* 斜め線2 */
+.core::after{
+    transform:translate(-50%,-50%) rotate(-45deg);
 }
 
 /* ===========================
-   粒子（緑・黄色）
+   粒子（オレンジ＋赤＋黄色）
 =========================== */
 
 .particle{
@@ -77,14 +97,14 @@ body{
     height:14px;
     border-radius:50%;
 
-    /* 粒子はずっと発散し続ける */
     animation:spread 2.2s ease-out infinite;
 }
 
-.green{ background:#00ff88; box-shadow:0 0 25px #00ff88; }
+.orange{ background:#ff7b00; box-shadow:0 0 25px #ff7b00; }
+.red{ background:#ff2b2b; box-shadow:0 0 25px #ff2b2b; }
 .yellow{ background:#ffee55; box-shadow:0 0 25px #ffee55; }
 
-/* 粒子の初期位置（全部中心） */
+/* 粒子の初期位置 */
 .p1{ left:50%; top:50%; }
 .p2{ left:50%; top:50%; }
 .p3{ left:50%; top:50%; }
@@ -96,7 +116,7 @@ body{
    アニメーション
 =========================== */
 
-/* Y軸でゆっくり回転して出てくる（侃の要望） */
+/* Y軸でゆっくり回転して出てくる */
 @keyframes spinIn{
     0%{
         transform:scale(0) rotateY(0deg);
@@ -119,14 +139,7 @@ body{
     100%{transform:translateY(0);}
 }
 
-/* 脈動 */
-@keyframes pulse{
-    0%{transform:translate(-50%,-50%) scale(1);}
-    50%{transform:translate(-50%,-50%) scale(1.35);}
-    100%{transform:translate(-50%,-50%) scale(1);}
-}
-
-/* 粒子がずっと発散し続ける（新しいアニメーション） */
+/* 粒子がずっと発散し続ける */
 @keyframes spread{
     0%{
         transform:translate(-50%,-50%) scale(0.3);
@@ -138,7 +151,7 @@ body{
     }
 }
 
-/* 後ろに下がって消える（途中で止まらないように調整） */
+/* 消失 */
 @keyframes vanish{
     0%{
         transform:scale(1) translateY(0);
@@ -158,15 +171,15 @@ body{
 
     <div class="totem">
 
-        <!-- 粒子（飛距離をさらに伸ばした） -->
-        <div class="particle green p1" style="--x:-200px; --y:-300px;"></div>
-        <div class="particle yellow p2" style="--x:240px; --y:-320px;"></div>
-        <div class="particle green p3" style="--x:-260px; --y:120px;"></div>
-        <div class="particle yellow p4" style="--x:280px; --y:140px;"></div>
-        <div class="particle green p5" style="--x:-140px; --y:260px;"></div>
+        <!-- 粒子 -->
+        <div class="particle orange p1" style="--x:-200px; --y:-300px;"></div>
+        <div class="particle red p2" style="--x:240px; --y:-320px;"></div>
+        <div class="particle yellow p3" style="--x:-260px; --y:120px;"></div>
+        <div class="particle orange p4" style="--x:280px; --y:140px;"></div>
+        <div class="particle red p5" style="--x:-140px; --y:260px;"></div>
         <div class="particle yellow p6" style="--x:160px; --y:240px;"></div>
 
-        <!-- 真ん中の◯（穴あき輪っか） -->
+        <!-- ✖ 本体（図形） -->
         <div class="core"></div>
 
     </div>
