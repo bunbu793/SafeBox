@@ -1,5 +1,7 @@
 import streamlit as st
 import random
+from streamlit_lottie import st_lottie
+import json
 
 st.set_page_config(page_title="防災クイズ", page_icon="📝")
 
@@ -66,7 +68,66 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------
-# 問題データ（Lv1）
+# トロフィーアニメーション
+# -------------------------
+def load_lottie():
+    trophy_json = {
+        "v": "5.5.7",
+        "fr": 30,
+        "ip": 0,
+        "op": 60,
+        "w": 500,
+        "h": 500,
+        "nm": "trophy",
+        "ddd": 0,
+        "assets": [],
+        "layers": [
+            {
+                "ddd": 0,
+                "ind": 1,
+                "ty": 4,
+                "nm": "Trophy",
+                "sr": 1,
+                "ks": {
+                    "o": {"a": 0, "k": 100},
+                    "r": {"a": 1, "k": [
+                        {"t": 0, "s": 0},
+                        {"t": 60, "s": 360}
+                    ]},
+                    "p": {"a": 0, "k": [250, 250, 0]},
+                    "a": {"a": 0, "k": [0, 0, 0]},
+                    "s": {"a": 0, "k": [100, 100, 100]}
+                },
+                "shapes": [
+                    {
+                        "ty": "gr",
+                        "it": [
+                            {
+                                "ty": "sh",
+                                "ks": {
+                                    "a": 0,
+                                    "k": {
+                                        "i": [[0,0],[0,0],[0,0]],
+                                        "o": [[0,0],[0,0],[0,0]],
+                                        "v": [[0,-100],[100,100],[-100,100]],
+                                        "c": True
+                                    }
+                                }
+                            },
+                            {
+                                "ty": "fl",
+                                "c": {"a": 0, "k": [1, 0.8, 0, 1]}
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+    return trophy_json
+
+# -------------------------
+# 問題データ（簡易版）
 # -------------------------
 def get_questions_for_rank(rank):
     return [
@@ -136,15 +197,14 @@ if st.session_state.mode in ["practice", "test", "review"]:
             key=f"ans_{idx}"
         )
 
+        # 回答する（○×だけ表示）
         if st.button("回答する"):
             correct = (user_answer == q["answer"])
             st.session_state.results.append(correct)
 
-            # 間違えた問題を保存
             if not correct and st.session_state.mode == "practice":
                 st.session_state.wrong_questions.append(q)
 
-            # ○ × アニメーション表示
             if correct:
                 st.markdown("<div class='mark correct'>○</div>", unsafe_allow_html=True)
             else:
@@ -152,25 +212,20 @@ if st.session_state.mode in ["practice", "test", "review"]:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # 次の問題へ進む
+        # 次の問題へ
         if st.button("次の問題へ"):
             st.session_state.current_index += 1
 
     else:
         # -------------------------
-        # 全問終了 → 結果発表
+        # 最後だけ結果発表
         # -------------------------
         correct_count = sum(st.session_state.results)
-        total = len(st.session_state.results)
 
-        st.write(f"### 結果：{correct_count} / {total}")
-
-        # 練習問題 → ポイント加算
         if st.session_state.mode == "practice":
             st.success(f"🎉 +{correct_count} pt 獲得！")
             st.session_state.points += correct_count
 
-        # テスト → 合格判定
         if st.session_state.mode == "test":
             if correct_count >= 9:
                 st.success("🎉 合格！次のランクへ進めます")
@@ -179,7 +234,6 @@ if st.session_state.mode in ["practice", "test", "review"]:
                 st.error("不合格… また挑戦しよう！")
                 st.session_state.test_passed = False
 
-        # 間違えた問題 → 結果だけ
         if st.session_state.mode == "review":
             st.info("復習お疲れさま！")
 
@@ -190,5 +244,10 @@ if st.session_state.mode in ["practice", "test", "review"]:
             if st.button("次のランクへ進む"):
                 st.session_state.rank += 1
                 st.session_state.points += 900 if correct_count == 9 else 1200
+
                 st.success("ランクアップしました！")
+
+                # トロフィーアニメーション
+                st_lottie(load_lottie(), height=300)
+
                 st.session_state.mode = None
