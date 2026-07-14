@@ -18,6 +18,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+# カテゴリ（質問ごとに選ぶ）
 st.subheader("相談カテゴリ（複数選択OK）")
 
 categories = st.multiselect(
@@ -31,7 +32,8 @@ categories = st.multiselect(
         "メンタルケア（不安・怖い）",
         "生活の困りごと（停電・断水）",
         "その他"
-    ]
+    ],
+    key="category_select"
 )
 
 user_input = st.chat_input("例：どうすればいい？ / 地震が怖い / 何を買えばいい？ / 避難所はどこ？")
@@ -138,7 +140,7 @@ if user_input:
     else:
         comfort = "できることから一つずつ進めれば、必ず安全に近づきます。"
 
-    # --- まとめ（カテゴリは表示しない） ---
+    # --- まとめ ---
     answer = f"""
 「{user_input}」という相談ですね。
 
@@ -165,3 +167,6 @@ if user_input:
         st.markdown(answer)
 
     st.session_state.messages.append({"role": "assistant", "content": answer})
+
+    # 🔥 質問後にカテゴリをリセット（ここが重要）
+    st.session_state["category_select"] = []
