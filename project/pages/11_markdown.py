@@ -2,59 +2,111 @@ import streamlit as st
 
 st.set_page_config(page_title="2D Trophy", page_icon="🏆")
 
-# CSSで右の画像風トロフィーを描く
+# 侃のCSS（そのまま使える）
 st.markdown("""
 <style>
-.trophy-flat {
-    width: 150px;
-    margin: 40px auto;
-    position: relative;
+.trophy{
+    width:220px;
+    margin:auto;
+    position:relative;
 }
 
-/* カップ部分（右の画像に近い平面デザイン） */
-.trophy-flat .cup {
-    width: 120px;
-    height: 80px;
-    background: #FFD84D; /* 明るい黄色 */
-    border-radius: 60px 60px 20px 20px;
-    margin: auto;
-    border: 6px solid #E0B63F; /* 少し濃い黄色の縁 */
+/* カップ本体 */
+.cup{
+    width:140px;
+    height:120px;
+    margin:auto;
+    background:#FFD46A;
+    border-radius:0 0 60px 60px;
+    position:relative;
 }
 
-/* ハンドル（右の画像の丸い形に合わせる） */
-.trophy-flat .handle-left,
-.trophy-flat .handle-right {
-    width: 35px;
-    height: 55px;
-    border: 6px solid #E0B63F;
-    border-radius: 50%;
-    position: absolute;
-    top: 10px;
-    background: #FFD84D;
+/* 左取っ手 */
+.cup::before{
+    content:"";
+    position:absolute;
+    left:-35px;
+    top:18px;
+
+    width:42px;
+    height:42px;
+
+    border:12px solid #FFD46A;
+    border-right:none;
+    border-radius:50%;
 }
 
-.trophy-flat .handle-left { left: -30px; }
-.trophy-flat .handle-right { right: -30px; }
+/* 右取っ手 */
+.cup::after{
+    content:"";
+    position:absolute;
+    right:-35px;
+    top:18px;
 
-/* 台座（右の画像の茶色） */
-.trophy-flat .base {
-    width: 90px;
-    height: 40px;
-    background: #C48A4A;
-    margin: auto;
-    border-radius: 6px;
-    margin-top: 10px;
-    border: 6px solid #A06A36;
+    width:42px;
+    height:42px;
+
+    border:12px solid #FFD46A;
+    border-left:none;
+    border-radius:50%;
+}
+
+/* ★ */
+.star{
+    position:absolute;
+    left:50%;
+    top:42%;
+
+    transform:translate(-50%,-50%);
+
+    font-size:42px;
+    color:white;
+
+    text-shadow:0 0 8px gold;
+}
+
+/* 柱 */
+.stem{
+    width:34px;
+    height:55px;
+    background:#FFD46A;
+
+    margin:auto;
+}
+
+/* 台 */
+.base-top{
+    width:80px;
+    height:28px;
+
+    background:#8B4A00;
+
+    margin:auto;
+
+    border-radius:6px 6px 0 0;
+}
+
+/* 土台 */
+.base{
+    width:130px;
+    height:22px;
+
+    background:#6E3900;
+
+    margin:auto;
+
+    border-radius:5px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# HTMLでトロフィーを表示
+# HTML構造（これがないと表示されない）
 st.markdown("""
-<div class="trophy-flat">
+<div class="trophy">
     <div class="cup"></div>
-    <div class="handle-left"></div>
-    <div class="handle-right"></div>
+    <div class="star">★</div>
+    <div class="stem"></div>
+    <div class="base-top"></div>
     <div class="base"></div>
 </div>
 """, unsafe_allow_html=True)
