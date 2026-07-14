@@ -213,3 +213,13 @@ if st.session_state.category:
 
     st.session_state.category = None
     st.rerun()
+
+#=================================================
+#履歴削除
+#=================================================
+
+if st.button("🗑️ チャット履歴を削除"):
+    st.session_state.messages = []
+    st.session_state.category = None
+    st.session_state.welcome = False
+    st.rerun()
