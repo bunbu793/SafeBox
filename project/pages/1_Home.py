@@ -42,6 +42,6 @@ menu_item("📋 チェックリスト・アドバイス", "pages/3_Checklist_Adv
 menu_item("📝 メモ・ノート", "pages/4_Family_Code.py")
 menu_item("🗺️ お店を探す", "pages/5_Shopping_Guide.py")
 menu_item("🆘 安否確認", "pages/6_safety_Status.py")
-menu_item(" 避難場所", "pages/7_Shelters_Map.py")
+menu_item(" 避難場所", "pages/7_Chat_AI.py")
 menu_item("❓ 防災クイズ", "pages/8_Quiz.py")
 menu_item("⚙️ 設定", "pages/9_settings.py")
