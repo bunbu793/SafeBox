@@ -45,7 +45,9 @@ if st.session_state.selected_category is None:
             st.session_state.selected_category = "生活"
 
 # --- カテゴリが選ばれたらチャット履歴に追加（ここだけでOK） ---
-if st.session_state.selected_category:
+if st.session_state.selected_category and not any(
+    msg["content"].startswith("カテゴリ：") for msg in st.session_state.messages
+):
     st.session_state.messages.append({
         "role": "assistant",
         "content": f"カテゴリ：{st.session_state.selected_category} が選ばれました。\n相談内容を入力してください。"
@@ -113,5 +115,5 @@ if user_input:
 
     st.session_state.messages.append({"role": "assistant", "content": answer})
 
-    # 🔥 質問後カテゴリをリセット
+    # 🔥 質問後カテゴリをリセット（ここが重要）
     st.session_state.selected_category = None
