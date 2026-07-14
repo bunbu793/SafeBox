@@ -12,37 +12,26 @@ st.set_page_config(
 )
 
 # ==================================================
-# デザイン
+# CSS
 # ==================================================
 
 st.markdown("""
 <style>
-
-.main{
-    background-color:#f7f9fc;
+.block-container{
+    padding-top:2rem;
 }
-
 .stButton>button{
     width:100%;
-    border-radius:12px;
     height:55px;
+    border-radius:12px;
     font-weight:bold;
     font-size:16px;
 }
-
 .stChatMessage{
-    border-radius:18px;
+    border-radius:15px;
 }
-
 </style>
 """, unsafe_allow_html=True)
-
-# ==================================================
-# タイトル
-# ==================================================
-
-st.title("🤖 SafeBox 防災コンシェルジュ")
-st.write("災害時の行動や備えについて相談できます。")
 
 # ==================================================
 # セッション
@@ -54,212 +43,113 @@ if "messages" not in st.session_state:
 if "category" not in st.session_state:
     st.session_state.category = None
 
+if "today_tip" not in st.session_state:
+    st.session_state.today_tip = None
+
+if "welcome" not in st.session_state:
+    st.session_state.welcome = False
+
 # ==================================================
-# 防災豆知識
+# 豆知識
 # ==================================================
 
 tips = [
-    "💡 水は1人1日3Lを目安に備蓄しましょう。",
-    "💡 家具固定で地震の被害を減らせます。",
-    "💡 非常食は賞味期限を確認しましょう。",
-    "💡 モバイルバッテリーは定期的に充電しましょう。",
-    "💡 家族で集合場所を決めておきましょう。"
+    "💧 水は1人1日3Lを目安に備えましょう。",
+    "🔋 モバイルバッテリーは満充電にしておきましょう。",
+    "📦 非常食はローリングストックがおすすめです。",
+    "🏠 家具固定で地震被害を減らせます。",
+    "📞 災害用伝言ダイヤル171を覚えておきましょう。"
 ]
+
+if st.session_state.today_tip is None:
+    st.session_state.today_tip = random.choice(tips)
 
 # ==================================================
 # 回答データ
 # ==================================================
 
 responses = {
-
-"地震":{
-
-"title":"🌍 地震",
-
-"conclusion":"まず机の下など安全な場所で身を守ってください。",
-
-"reason":"落下物や家具の転倒が大きな危険になります。",
-
-"actions":[
-"頭を守る",
-"揺れが収まるまで待つ",
-"火の元を確認する",
-"避難情報を見る"
-],
-
-"family":[
-"家族の安否確認",
-"集合場所へ向かう"
-],
-
-"items":[
-"水",
-"非常食",
-"ライト",
-"モバイルバッテリー"
-],
-
-"tip":"家具固定器具を付けると被害を減らせます。"
-
-},
-
-"備蓄":{
-
-"title":"📦 備蓄",
-
-"conclusion":"最低3日、できれば7日分準備しましょう。",
-
-"reason":"物流が止まる可能性があります。",
-
-"actions":[
-"水を確認",
-"非常食を確認",
-"乾電池を交換",
-"薬を準備"
-],
-
-"family":[
-"乳幼児や高齢者用品も準備"
-],
-
-"items":[
-"水",
-"非常食",
-"乾電池",
-"薬",
-"ラジオ"
-],
-
-"tip":"ローリングストックがおすすめです。"
-
-},
-
-"避難":{
-
-"title":"🏫 避難",
-
-"conclusion":"避難所を事前に確認しておきましょう。",
-
-"reason":"災害時は道路状況が変わります。",
-
-"actions":[
-"避難所を確認",
-"避難経路を歩いてみる",
-"危険箇所を確認"
-],
-
-"family":[
-"集合場所を決める"
-],
-
-"items":[
-"避難バッグ",
-"飲料水",
-"ライト"
-],
-
-"tip":"昼と夜の避難経路を確認しましょう。"
-
-},
-
-"家族":{
-
-"title":"👨‍👩‍👧 家族",
-
-"conclusion":"連絡方法を事前に決めましょう。",
-
-"reason":"電話がつながりにくくなることがあります。",
-
-"actions":[
-"171を確認",
-"集合場所を決める",
-"避難所を共有"
-],
-
-"family":[
-"子どもにも避難方法を教える"
-],
-
-"items":[
-"連絡先一覧",
-"充電器"
-],
-
-"tip":"災害用伝言ダイヤル171を覚えておきましょう。"
-
-},
-
-"生活":{
-
-"title":"⚡ 停電・断水",
-
-"conclusion":"まず水と電源を確保しましょう。",
-
-"reason":"停電・断水は数日続くことがあります。",
-
-"actions":[
-"充電を節約",
-"飲料水を確保",
-"冷蔵庫を開けすぎない"
-],
-
-"family":[
-"高齢者を優先"
-],
-
-"items":[
-"水",
-"ライト",
-"乾電池"
-],
-
-"tip":"保冷バッグがあると便利です。"
-
-},
-
-"メンタル":{
-
-"title":"🧠 メンタル",
-
-"conclusion":"まず深呼吸して落ち着きましょう。",
-
-"reason":"焦ると判断ミスにつながります。",
-
-"actions":[
-"深呼吸",
-"周囲と話す",
-"正しい情報を見る"
-],
-
-"family":[
-"子どもの不安に寄り添う"
-],
-
-"items":[
-"飲み物",
-"毛布"
-],
-
-"tip":"一人で抱え込まないことが大切です。"
-
-}
-
+    "地震": {
+        "title": "🌍 地震",
+        "conclusion": "まず机の下など安全な場所で身を守りましょう。",
+        "reason": "揺れている最中は落下物や家具の転倒が最も危険です。",
+        "actions": ["頭を守る", "揺れが収まるまで待つ", "火の元を確認する", "避難情報を確認する"],
+        "family": ["家族の安否確認", "集合場所を確認する"],
+        "items": ["懐中電灯", "水", "非常食", "モバイルバッテリー"],
+        "tip": "揺れが収まってから落ち着いて行動しましょう。"
+    },
+    "備蓄": {
+        "title": "📦 備蓄",
+        "conclusion": "最低3日分、できれば7日分の備蓄を準備しましょう。",
+        "reason": "災害時は物流が止まる可能性があります。",
+        "actions": ["水を確認", "非常食を確認", "乾電池を確認", "薬を準備"],
+        "family": ["乳幼児用品", "高齢者用品"],
+        "items": ["飲料水", "非常食", "乾電池", "常備薬"],
+        "tip": "普段から消費しながら備えるローリングストックがおすすめです。"
+    },
+    "避難": {
+        "title": "🏫 避難",
+        "conclusion": "避難所と避難経路を事前に確認しましょう。",
+        "reason": "災害時は道路状況が変わる可能性があります。",
+        "actions": ["避難所を確認", "避難経路を歩いてみる", "危険箇所を確認"],
+        "family": ["集合場所を決める", "連絡方法を確認する"],
+        "items": ["避難バッグ", "ライト", "飲料水"],
+        "tip": "昼と夜の避難経路を確認しておくと安心です。"
+    },
+    "家族": {
+        "title": "👨‍👩‍👧 家族",
+        "conclusion": "家族との連絡方法を決めておきましょう。",
+        "reason": "電話がつながらないことがあります。",
+        "actions": ["171を確認", "集合場所を決める", "避難所を共有する"],
+        "family": ["子どもにも避難方法を教える"],
+        "items": ["連絡先一覧", "充電器"],
+        "tip": "災害用伝言ダイヤル171を覚えておきましょう。"
+    },
+    "生活": {
+        "title": "⚡ 停電・断水",
+        "conclusion": "まず水と電源を確保しましょう。",
+        "reason": "停電・断水は数日続く場合があります。",
+        "actions": ["充電を節約する", "水を確保する", "冷蔵庫の開閉を減らす"],
+        "family": ["高齢者や子どもを優先する"],
+        "items": ["水", "乾電池", "ライト"],
+        "tip": "保冷バッグがあると食品を長持ちさせられます。"
+    },
+    "メンタル": {
+        "title": "🧠 メンタル",
+        "conclusion": "まず深呼吸して落ち着きましょう。",
+        "reason": "冷静な判断が安全につながります。",
+        "actions": ["深呼吸する", "周囲の人と話す", "正しい情報を確認する"],
+        "family": ["子どもの不安に寄り添う"],
+        "items": ["飲み物", "毛布"],
+        "tip": "一人で抱え込まず、周囲に相談しましょう。"
+    }
 }
 
 # ==================================================
 # チャット履歴表示
 # ==================================================
 
-for message in st.session_state.messages:
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"], avatar="🛡" if msg["role"]=="assistant" else "👤"):
+        st.markdown(msg["content"])
 
-    if message["role"] == "assistant":
-        with st.chat_message("assistant"):
-            st.markdown(message["content"])
+# ==================================================
+# 初回メッセージ
+# ==================================================
 
-    elif message["role"] == "user":
-        with st.chat_message("user"):
-            st.markdown(message["content"])
+if not st.session_state.welcome:
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": """
+## 👋 ようこそ！
 
+私は **SafeBox 防災コンシェルジュ** です。
+
+相談したいカテゴリを選んでください。
+"""
+    })
+    st.session_state.welcome = True
+    st.rerun()
 
 # ==================================================
 # カテゴリ選択
@@ -267,421 +157,85 @@ for message in st.session_state.messages:
 
 if st.session_state.category is None:
 
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar="🛡"):
+        st.write("📂 カテゴリを選択してください")
 
-        st.markdown("### 📂 相談したいカテゴリを選んでください")
+        col1, col2, col3 = st.columns(3)
 
-        row1 = st.columns(3)
-
-        if row1[0].button("🌍 地震", use_container_width=True):
+        if col1.button("🌍 地震"):
             st.session_state.category = "地震"
-
-            st.session_state.messages.append({
-                "role":"assistant",
-                "content":"🌍 **地震** が選択されました。\n\n相談内容を入力してください。"
-            })
-
             st.rerun()
 
-        if row1[1].button("📦 備蓄", use_container_width=True):
+        if col2.button("📦 備蓄"):
             st.session_state.category = "備蓄"
-
-            st.session_state.messages.append({
-                "role":"assistant",
-                "content":"📦 **備蓄** が選択されました。\n\n相談内容を入力してください。"
-            })
-
             st.rerun()
 
-        if row1[2].button("🏫 避難", use_container_width=True):
+        if col3.button("🏫 避難"):
             st.session_state.category = "避難"
-
-            st.session_state.messages.append({
-                "role":"assistant",
-                "content":"🏫 **避難** が選択されました。\n\n相談内容を入力してください。"
-            })
-
             st.rerun()
 
-        row2 = st.columns(3)
+        col4, col5, col6 = st.columns(3)
 
-        if row2[0].button("👨‍👩‍👧 家族", use_container_width=True):
+        if col4.button("👨‍👩‍👧 家族"):
             st.session_state.category = "家族"
-
-            st.session_state.messages.append({
-                "role":"assistant",
-                "content":"👨‍👩‍👧 **家族** が選択されました。\n\n相談内容を入力してください。"
-            })
-
             st.rerun()
 
-        if row2[1].button("⚡ 停電・断水", use_container_width=True):
+        if col5.button("⚡ 停電・断水"):
             st.session_state.category = "生活"
-
-            st.session_state.messages.append({
-                "role":"assistant",
-                "content":"⚡ **停電・断水** が選択されました。\n\n相談内容を入力してください。"
-            })
-
             st.rerun()
 
-        if row2[2].button("🧠 メンタル", use_container_width=True):
+        if col6.button("🧠 メンタル"):
             st.session_state.category = "メンタル"
-
-            st.session_state.messages.append({
-                "role":"assistant",
-                "content":"🧠 **メンタル** が選択されました。\n\n相談内容を入力してください。"
-            })
-
             st.rerun()
-
 
 # ==================================================
-# チャット入力
+# カテゴリ表示
+# ==================================================
+
+if st.session_state.category:
+    st.info(f"現在のカテゴリ：**{st.session_state.category}**")
+
+# ==================================================
+# 入力欄
 # ==================================================
 
 user_input = st.chat_input("相談内容を入力してください")
 
-# ==================================================
-# 回答処理
-# ==================================================
-
 if user_input:
 
-    # ユーザーのメッセージを保存
     st.session_state.messages.append({
         "role": "user",
         "content": user_input
     })
 
-    # カテゴリ取得
-    category = st.session_state.category
+    data = responses[st.session_state.category]
 
-    if category is None:
-        category = "地震"
-
-    data = responses[category]
-
-    # 箇条書きをMarkdownに変換
-    actions = "\n".join(
-        [f"- {text}" for text in data["actions"]]
-    )
-
-    family = "\n".join(
-        [f"- {text}" for text in data["family"]]
-    )
-
-    items = "\n".join(
-        [f"- {text}" for text in data["items"]]
-    )
-
-    # AI回答
     answer = f"""
-## {data["title"]}
+## {data['title']}
 
-### 📌 結論
+### ① 結論  
+{data['conclusion']}
 
-{data["conclusion"]}
+### ② 理由  
+{data['reason']}
 
----
+### ③ 具体的な行動  
+- {'\n- '.join(data['actions'])}
 
-### 📖 理由
+### ④ 家族への配慮  
+- {'\n- '.join(data['family'])}
 
-{data["reason"]}
+### ⑤ 備えておくもの  
+- {'\n- '.join(data['items'])}
 
----
-
-### ✅ 具体的な行動
-
-{actions}
-
----
-
-### 👨‍👩‍👧 家族への配慮
-
-{family}
-
----
-
-### 🎒 備えておくもの
-
-{items}
-
----
-
-### 💡 ワンポイント
-
-{data["tip"]}
-
----
-
-### 💬 あなたの相談内容
-
-> {user_input}
-
-落ち着いて、一つずつ対応していけば大丈夫です。
+### ⑥ アドバイス  
+{data['tip']}
 """
 
-    # AIメッセージ保存
     st.session_state.messages.append({
         "role": "assistant",
         "content": answer
     })
 
-    # カテゴリをリセット
     st.session_state.category = None
-
     st.rerun()
-
-# ==================================================
-# サイドバー
-# ==================================================
-
-with st.sidebar:
-
-    st.title("🛡 SafeBox")
-
-    st.success("防災コンシェルジュ")
-
-    st.divider()
-
-    # 相談件数
-    user_count = len(
-        [m for m in st.session_state.messages if m["role"] == "user"]
-    )
-
-    st.metric(
-        label="相談件数",
-        value=user_count
-    )
-
-    st.divider()
-
-    # カテゴリ表示
-    if st.session_state.category is None:
-        st.info("📂 カテゴリ：未選択")
-    else:
-        st.success(f"📂 {st.session_state.category}")
-
-    st.divider()
-
-    # 防災豆知識
-    st.subheader("💡 今日の防災豆知識")
-
-    if "today_tip" not in st.session_state:
-        st.session_state.today_tip = random.choice(tips)
-
-    st.info(st.session_state.today_tip)
-
-    if st.button("🔄 豆知識を更新", use_container_width=True):
-        st.session_state.today_tip = random.choice(tips)
-        st.rerun()
-
-    st.divider()
-
-    st.subheader("📋 メニュー")
-
-    st.write("🌍 地震")
-    st.write("📦 備蓄")
-    st.write("🏫 避難")
-    st.write("👨‍👩‍👧 家族")
-    st.write("⚡ 停電・断水")
-    st.write("🧠 メンタル")
-
-    st.divider()
-
-    # 履歴削除
-    if st.button("🗑 チャット履歴を削除", use_container_width=True):
-
-        st.session_state.messages = []
-        st.session_state.category = None
-
-        if "today_tip" in st.session_state:
-            del st.session_state.today_tip
-
-        st.rerun()
-
-# ==================================================
-# フッター
-# ==================================================
-
-st.divider()
-
-st.caption("🛡 SafeBox Disaster Concierge")
-
-st.caption("災害時の判断をサポートする防災コンシェルジュ")
-
-# ==================================================
-# サイドバー
-# ==================================================
-
-with st.sidebar:
-
-    st.title("🛡 SafeBox")
-
-    st.success("防災コンシェルジュ")
-
-    st.divider()
-
-    # 相談件数
-    user_count = len(
-        [m for m in st.session_state.messages if m["role"] == "user"]
-    )
-
-    st.metric(
-        label="相談件数",
-        value=user_count
-    )
-
-    st.divider()
-
-    # カテゴリ表示
-    if st.session_state.category is None:
-        st.info("📂 カテゴリ：未選択")
-    else:
-        st.success(f"📂 {st.session_state.category}")
-
-    st.divider()
-
-    # 防災豆知識
-    st.subheader("💡 今日の防災豆知識")
-
-    if "today_tip" not in st.session_state:
-        st.session_state.today_tip = random.choice(tips)
-
-    st.info(st.session_state.today_tip)
-
-    if st.button("🔄 豆知識を更新", use_container_width=True):
-        st.session_state.today_tip = random.choice(tips)
-        st.rerun()
-
-    st.divider()
-
-    st.subheader("📋 メニュー")
-
-    st.write("🌍 地震")
-    st.write("📦 備蓄")
-    st.write("🏫 避難")
-    st.write("👨‍👩‍👧 家族")
-    st.write("⚡ 停電・断水")
-    st.write("🧠 メンタル")
-
-    st.divider()
-
-    # 履歴削除
-    if st.button("🗑 チャット履歴を削除", use_container_width=True):
-
-        st.session_state.messages = []
-        st.session_state.category = None
-
-        if "today_tip" in st.session_state:
-            del st.session_state.today_tip
-
-        st.rerun()
-
-# ==================================================
-# フッター
-# ==================================================
-
-st.divider()
-
-st.caption("🛡 SafeBox Disaster Concierge")
-
-st.caption("災害時の判断をサポートする防災コンシェルジュ")
-# ==================================================
-# 初回メッセージ
-# ==================================================
-
-if "welcome" not in st.session_state:
-
-    st.session_state.messages.append({
-        "role": "assistant",
-        "content": """
-# 🤖 SafeBoxへようこそ！
-
-こんにちは！
-
-私は **SafeBox 防災コンシェルジュ** です。
-
-次のような相談ができます。
-
-- 🌍 地震
-- 📦 備蓄
-- 🏫 避難
-- 👨‍👩‍👧 家族
-- ⚡ 停電・断水
-- 🧠 メンタルケア
-
-カテゴリを選択して相談してください。
-"""
-    })
-
-    st.session_state.welcome = True
-
-
-# ==================================================
-# 相談終了メッセージ
-# ==================================================
-
-if len(st.session_state.messages) > 8:
-
-    st.success("🎉 今日も防災について学習できました！")
-
-
-# ==================================================
-# SafeBox情報
-# ==================================================
-
-with st.expander("ℹ SafeBoxについて"):
-
-    st.markdown("""
-### 🛡 SafeBox
-
-SafeBoxは、
-
-災害時に必要な情報を
-すぐ確認できる防災支援アプリです。
-
-#### 主な機能
-
-- 🤖 防災コンシェルジュ
-- 🗺 避難所検索
-- 📦 備蓄チェック
-- 🚨 緊急連絡先
-- 👨‍👩‍👧 家族情報管理
-- 📱 スマホ対応
-
-今後さらに機能追加予定です。
-""")
-
-
-# ==================================================
-# フッター
-# ==================================================
-
-st.divider()
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.caption("🛡 SafeBox")
-
-with col2:
-    st.caption("Version 2.0")
-
-with col3:
-    st.caption("Made with Streamlit")
-
-
-st.markdown(
-"""
-<center>
-
-### 🤖 SafeBox 防災コンシェルジュ
-
-災害時も、いつもの安心を。
-
-</center>
-""",
-unsafe_allow_html=True
-)
