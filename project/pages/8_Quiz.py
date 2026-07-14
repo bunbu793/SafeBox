@@ -22,6 +22,8 @@ if "wrong_questions" not in st.session_state:
     st.session_state.wrong_questions = []
 if "test_passed" not in st.session_state:
     st.session_state.test_passed = False
+if "answered" not in st.session_state:
+    st.session_state.answered = False
 
 # -------------------------
 # ○ × アニメーション CSS
@@ -86,7 +88,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------
-# 問題データ（②で本格100問を送る）
+# 問題データ（仮）
 # -------------------------
 def get_questions_for_rank(rank):
     return [
@@ -116,6 +118,7 @@ with col1:
         st.session_state.current_index = 0
         st.session_state.results = []
         st.session_state.wrong_questions = []
+        st.session_state.answered = False
 
 with col2:
     if st.button("🔥 テスト問題を解く"):
@@ -125,6 +128,7 @@ with col2:
         st.session_state.current_index = 0
         st.session_state.results = []
         st.session_state.wrong_questions = []
+        st.session_state.answered = False
 
 with col3:
     if st.button("📘 間違えた問題を解く"):
@@ -135,6 +139,7 @@ with col3:
             st.session_state.questions = st.session_state.wrong_questions
             st.session_state.current_index = 0
             st.session_state.results = []
+            st.session_state.answered = False
 
 # -------------------------
 # 問題カード表示
@@ -160,11 +165,14 @@ if st.session_state.mode in ["practice", "test", "review"]:
         if st.button("回答する"):
             correct = (user_answer == q["answer"])
             st.session_state.results.append(correct)
+            st.session_state.answered = True
 
             if not correct and st.session_state.mode == "practice":
                 st.session_state.wrong_questions.append(q)
 
-            if correct:
+        # ○×表示（回答後のみ）
+        if st.session_state.answered:
+            if st.session_state.results[-1]:
                 st.markdown("<div class='mark correct'>○</div>", unsafe_allow_html=True)
             else:
                 st.markdown("<div class='mark wrong'>×</div>", unsafe_allow_html=True)
@@ -174,6 +182,7 @@ if st.session_state.mode in ["practice", "test", "review"]:
         # 次の問題へ
         if st.button("次の問題へ"):
             st.session_state.current_index += 1
+            st.session_state.answered = False
 
     else:
         # -------------------------
