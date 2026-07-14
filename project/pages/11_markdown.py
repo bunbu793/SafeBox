@@ -1,22 +1,23 @@
 import streamlit as st
-from streamlit_lottie import st_lottie
-import requests
 
-st.set_page_config(page_title="トロフィー表示", page_icon="🏆")
+st.set_page_config(page_title="Lottie Trophy", page_icon="🏆")
 
-# Lottie読み込み関数
-def load_lottie(url):
-    r = requests.get(url)
-    if r.status_code != 200:
-        return None
-    return r.json()
+# Lottie埋め込み（外部ライブラリ不要）
+lottie_html = """
+<div style="width:300px;margin:auto;">
+    <lottie-player 
+        src="https://assets10.lottiefiles.com/packages/lf20_trophy.json"
+        background="transparent"
+        speed="1"
+        style="width: 300px; height: 300px;"
+        loop
+        autoplay>
+    </lottie-player>
+</div>
 
-# LOTTE風の豪華トロフィー（フリー素材）
-trophy_lottie = load_lottie(
-    "https://assets10.lottiefiles.com/packages/lf20_trophy.json"
-)
+<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+"""
 
-st.title("🏆 トロフィー表示テスト")
+st.title("🏆 トロフィー表示テスト（Lottie）")
 
-# トロフィーだけ表示
-st_lottie(trophy_lottie, height=300)
+st.components.v1.html(lottie_html, height=350)
