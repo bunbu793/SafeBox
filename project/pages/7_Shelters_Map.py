@@ -24,34 +24,50 @@ if st.session_state.selected_category is None:
         st.write("どのカテゴリで相談しますか？")
         cols = st.columns(3)
 
+        # ボタン押した瞬間にチャット履歴へ追加（ここが重要）
         if cols[0].button("食料・水（備蓄）"):
             st.session_state.selected_category = "備蓄"
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": "カテゴリ：備蓄 が選ばれました。\n相談内容を入力してください。"
+            })
 
         if cols[1].button("避難所・避難経路"):
             st.session_state.selected_category = "避難"
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": "カテゴリ：避難 が選ばれました。\n相談内容を入力してください。"
+            })
 
         if cols[2].button("家族との連絡・安否確認"):
             st.session_state.selected_category = "家族"
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": "カテゴリ：家族 が選ばれました。\n相談内容を入力してください。"
+            })
 
         cols2 = st.columns(3)
 
         if cols2[0].button("災害時の行動（地震）"):
             st.session_state.selected_category = "地震"
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": "カテゴリ：地震 が選ばれました。\n相談内容を入力してください。"
+            })
 
         if cols2[1].button("メンタルケア（不安・怖い）"):
             st.session_state.selected_category = "メンタル"
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": "カテゴリ：メンタル が選ばれました。\n相談内容を入力してください。"
+            })
 
         if cols2[2].button("生活の困りごと（停電・断水）"):
             st.session_state.selected_category = "生活"
-
-# --- カテゴリが選ばれたらチャット履歴に追加（ここだけでOK） ---
-if st.session_state.selected_category and not any(
-    msg["content"].startswith("カテゴリ：") for msg in st.session_state.messages
-):
-    st.session_state.messages.append({
-        "role": "assistant",
-        "content": f"カテゴリ：{st.session_state.selected_category} が選ばれました。\n相談内容を入力してください。"
-    })
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": "カテゴリ：生活 が選ばれました。\n相談内容を入力してください。"
+            })
 
 # --- ユーザー入力 ---
 user_input = st.chat_input("相談内容を入力")
@@ -115,5 +131,5 @@ if user_input:
 
     st.session_state.messages.append({"role": "assistant", "content": answer})
 
-    # 🔥 質問後カテゴリをリセット（ここが重要）
+    # 🔥 質問後カテゴリをリセット
     st.session_state.selected_category = None
