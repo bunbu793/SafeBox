@@ -45,18 +45,23 @@ body{
         glow 2.5s ease-in-out infinite;
 }
 
-/* カップ（画像の形に寄せた2D） */
+/* ===========================
+   カップ（画像の形）
+=========================== */
+
 .cup{
     position:relative;
     width:160px;
     height:120px;
     margin:auto;
+
     background:#FFD54A;
+
     border-radius:80px 80px 60px 60px;
 }
 
 /* ===========================
-   持ち手（穴の開いた楕円）
+   持ち手（完全な丸＋穴あり）
 =========================== */
 
 .handle{
@@ -64,36 +69,36 @@ body{
     top:25px;
 
     width:70px;
-    height:90px;
+    height:70px;
 
     background:#FFD54A;
     border-radius:50%;
 
-    /* 穴を作る（内側を白で抜く） */
+    /* 穴を作る */
     box-shadow:
-        inset 0 0 0 22px #ffffff; /* 内側の穴 */
+        inset 0 0 0 25px #ffffff;
 }
 
 .handle-left{
-    left:-50px;
+    left:-45px;
 }
 
 .handle-right{
-    right:-50px;
+    right:-45px;
 }
 
 /* ===========================
-   星 → 丸に変更
+   中央の丸（星の代わり）
 =========================== */
 
-.star{
+.center-circle{
     position:absolute;
     left:50%;
     top:40%;
     transform:translate(-50%,-50%);
 
-    width:45px;
-    height:45px;
+    width:55px;
+    height:55px;
 
     background:white;
     border-radius:50%;
@@ -108,7 +113,7 @@ body{
 }
 
 /* ===========================
-   柱・台座（2D）
+   柱・台座（画像の形）
 =========================== */
 
 .stem{
@@ -292,7 +297,7 @@ body{
         <div class="cup">
             <div class="handle handle-left"></div>
             <div class="handle handle-right"></div>
-            <div class="star"></div>
+            <div class="center-circle"></div>
         </div>
 
         <div class="stem"></div>
