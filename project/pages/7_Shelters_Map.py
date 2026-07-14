@@ -44,7 +44,7 @@ if st.session_state.selected_category is None:
         if cols2[2].button("生活の困りごと（停電・断水）"):
             st.session_state.selected_category = "生活"
 
-# --- カテゴリが選ばれたらチャット履歴に追加 ---
+# --- カテゴリが選ばれたらチャット履歴に追加（ここだけでOK） ---
 if st.session_state.selected_category:
     st.session_state.messages.append({
         "role": "assistant",
@@ -63,9 +63,8 @@ if user_input:
         st.markdown(user_input)
 
     category = st.session_state.selected_category or "その他"
-    text = user_input.lower()
 
-    # --- ①結論 ---
+    # --- 回答ロジック ---
     if category == "備蓄":
         conclusion = "まずは水・食料・ライト・モバイルバッテリーを優先して揃えましょう。"
     elif category == "地震":
@@ -81,7 +80,6 @@ if user_input:
     else:
         conclusion = "まずは落ち着いて状況を整理し、安全を確保しましょう。"
 
-    # --- ②〜⑥（簡略版） ---
     answer = f"""
 「{user_input}」という相談ですね。
 
@@ -115,5 +113,5 @@ if user_input:
 
     st.session_state.messages.append({"role": "assistant", "content": answer})
 
-    # 🔥 質問後カテゴリをリセット（ここが重要）
+    # 🔥 質問後カテゴリをリセット
     st.session_state.selected_category = None
