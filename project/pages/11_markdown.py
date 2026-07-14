@@ -18,6 +18,7 @@ lottie_html = """
 <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 """
 
-st.title("🏆 トロフィー表示テスト（Lottie）")
+st.title("🏆 トロフィー表示テスト (Lottie)")
 
-st.components.v1.html(lottie_html, height=350)
+# ★ SafeBoxでは height を大きくしないと表示されない
+st.components.v1.html(lottie_html, height=400)
