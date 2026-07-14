@@ -18,38 +18,38 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- カテゴリボタン ---
-with st.chat_message("assistant"):
-    st.write("どのカテゴリで相談しますか？")
-    cols = st.columns(3)
+# --- カテゴリボタン（カテゴリ未選択のときだけ表示） ---
+if st.session_state.selected_category is None:
+    with st.chat_message("assistant"):
+        st.write("どのカテゴリで相談しますか？")
+        cols = st.columns(3)
 
-    if cols[0].button("食料・水（備蓄）"):
-        st.session_state.selected_category = "備蓄"
+        if cols[0].button("食料・水（備蓄）"):
+            st.session_state.selected_category = "備蓄"
 
-    if cols[1].button("避難所・避難経路"):
-        st.session_state.selected_category = "避難"
+        if cols[1].button("避難所・避難経路"):
+            st.session_state.selected_category = "避難"
 
-    if cols[2].button("家族との連絡・安否確認"):
-        st.session_state.selected_category = "家族"
+        if cols[2].button("家族との連絡・安否確認"):
+            st.session_state.selected_category = "家族"
 
-    cols2 = st.columns(3)
+        cols2 = st.columns(3)
 
-    if cols2[0].button("災害時の行動（地震）"):
-        st.session_state.selected_category = "地震"
+        if cols2[0].button("災害時の行動（地震）"):
+            st.session_state.selected_category = "地震"
 
-    if cols2[1].button("メンタルケア（不安・怖い）"):
-        st.session_state.selected_category = "メンタル"
+        if cols2[1].button("メンタルケア（不安・怖い）"):
+            st.session_state.selected_category = "メンタル"
 
-    if cols2[2].button("生活の困りごと（停電・断水）"):
-        st.session_state.selected_category = "生活"
+        if cols2[2].button("生活の困りごと（停電・断水）"):
+            st.session_state.selected_category = "生活"
 
-# --- カテゴリが選ばれたらチャット履歴に追加（ここが重要） ---
+# --- カテゴリが選ばれたらチャット履歴に追加 ---
 if st.session_state.selected_category:
     st.session_state.messages.append({
         "role": "assistant",
         "content": f"カテゴリ：{st.session_state.selected_category} が選ばれました。\n相談内容を入力してください。"
     })
-    st.session_state.selected_category = None
 
 # --- ユーザー入力 ---
 user_input = st.chat_input("相談内容を入力")
@@ -65,8 +65,7 @@ if user_input:
     category = st.session_state.selected_category or "その他"
     text = user_input.lower()
 
-    # --- ここから回答ロジック（前のままでOK） ---
-    # ①結論
+    # --- ①結論 ---
     if category == "備蓄":
         conclusion = "まずは水・食料・ライト・モバイルバッテリーを優先して揃えましょう。"
     elif category == "地震":
@@ -82,7 +81,7 @@ if user_input:
     else:
         conclusion = "まずは落ち着いて状況を整理し、安全を確保しましょう。"
 
-    # --- ②〜⑥は省略（前のロジックでOK） ---
+    # --- ②〜⑥（簡略版） ---
     answer = f"""
 「{user_input}」という相談ですね。
 
@@ -116,5 +115,5 @@ if user_input:
 
     st.session_state.messages.append({"role": "assistant", "content": answer})
 
-    # 🔥 質問後カテゴリをリセット
+    # 🔥 質問後カテゴリをリセット（ここが重要）
     st.session_state.selected_category = None
