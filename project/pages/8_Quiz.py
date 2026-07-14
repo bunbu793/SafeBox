@@ -18,6 +18,8 @@ if "current_index" not in st.session_state:
     st.session_state.current_index = 0
 if "results" not in st.session_state:
     st.session_state.results = []
+if "wrong_questions" not in st.session_state:
+    st.session_state.wrong_questions = []
 if "test_passed" not in st.session_state:
     st.session_state.test_passed = False
 
@@ -27,19 +29,22 @@ if "test_passed" not in st.session_state:
 st.markdown("""
 <style>
 .card {
-    padding: 20px;
+    width: 70%;
+    margin: auto;
+    padding: 25px;
     border-radius: 12px;
-    background: #f8f9fa;
+    background: #ffffff;
     border: 2px solid #ddd;
     margin-bottom: 20px;
     position: relative;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
 }
 
 .mark {
     position: absolute;
-    top: -10px;
-    right: -10px;
-    font-size: 60px;
+    top: -20px;
+    right: -20px;
+    font-size: 70px;
     font-weight: bold;
     animation: pop 0.4s ease-out forwards;
 }
@@ -61,7 +66,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------
-# 問題データ（例：Lv1）
+# 問題データ（Lv1）
 # -------------------------
 def get_questions_for_rank(rank):
     return [
@@ -78,35 +83,50 @@ def get_questions_for_rank(rank):
     ]
 
 # -------------------------
-# 練習問題開始
+# ボタン群
 # -------------------------
-if st.button("🎯 練習問題を始める"):
-    st.session_state.mode = "practice"
-    st.session_state.questions = get_questions_for_rank(st.session_state.rank)
-    st.session_state.current_index = 0
-    st.session_state.results = []
+st.title("📝 防災クイズ")
 
-# -------------------------
-# テスト開始
-# -------------------------
-if st.button("🔥 テストを受ける（9問正解で合格）"):
-    st.session_state.mode = "test"
-    all_qs = get_questions_for_rank(st.session_state.rank)
-    st.session_state.questions = random.sample(all_qs, 10)
-    st.session_state.current_index = 0
-    st.session_state.results = []
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    if st.button("🎯 練習問題を解く"):
+        st.session_state.mode = "practice"
+        st.session_state.questions = get_questions_for_rank(st.session_state.rank)
+        st.session_state.current_index = 0
+        st.session_state.results = []
+        st.session_state.wrong_questions = []
+
+with col2:
+    if st.button("🔥 テスト問題を解く"):
+        st.session_state.mode = "test"
+        all_qs = get_questions_for_rank(st.session_state.rank)
+        st.session_state.questions = random.sample(all_qs, 10)
+        st.session_state.current_index = 0
+        st.session_state.results = []
+        st.session_state.wrong_questions = []
+
+with col3:
+    if st.button("📘 間違えた問題を解く"):
+        if len(st.session_state.wrong_questions) == 0:
+            st.warning("まだ間違えた問題がありません")
+        else:
+            st.session_state.mode = "review"
+            st.session_state.questions = st.session_state.wrong_questions
+            st.session_state.current_index = 0
+            st.session_state.results = []
 
 # -------------------------
 # 問題カード表示
 # -------------------------
-if st.session_state.mode in ["practice", "test"]:
+if st.session_state.mode in ["practice", "test", "review"]:
     idx = st.session_state.current_index
     qs = st.session_state.questions
 
     if idx < len(qs):
         q = qs[idx]
 
-        st.markdown(f"<div class='card'>", unsafe_allow_html=True)
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
 
         st.write(f"### {idx+1}. {q['q']}")
 
@@ -120,15 +140,21 @@ if st.session_state.mode in ["practice", "test"]:
             correct = (user_answer == q["answer"])
             st.session_state.results.append(correct)
 
+            # 間違えた問題を保存
+            if not correct and st.session_state.mode == "practice":
+                st.session_state.wrong_questions.append(q)
+
             # ○ × アニメーション表示
             if correct:
                 st.markdown("<div class='mark correct'>○</div>", unsafe_allow_html=True)
             else:
                 st.markdown("<div class='mark wrong'>×</div>", unsafe_allow_html=True)
 
-            st.session_state.current_index += 1
-
         st.markdown("</div>", unsafe_allow_html=True)
+
+        # 次の問題へ進む
+        if st.button("次の問題へ"):
+            st.session_state.current_index += 1
 
     else:
         # -------------------------
@@ -139,10 +165,12 @@ if st.session_state.mode in ["practice", "test"]:
 
         st.write(f"### 結果：{correct_count} / {total}")
 
+        # 練習問題 → ポイント加算
         if st.session_state.mode == "practice":
             st.success(f"🎉 +{correct_count} pt 獲得！")
             st.session_state.points += correct_count
 
+        # テスト → 合格判定
         if st.session_state.mode == "test":
             if correct_count >= 9:
                 st.success("🎉 合格！次のランクへ進めます")
@@ -150,6 +178,10 @@ if st.session_state.mode in ["practice", "test"]:
             else:
                 st.error("不合格… また挑戦しよう！")
                 st.session_state.test_passed = False
+
+        # 間違えた問題 → 結果だけ
+        if st.session_state.mode == "review":
+            st.info("復習お疲れさま！")
 
         # -------------------------
         # ランクアップボタン
