@@ -39,10 +39,12 @@ body{
     position:relative;
     width:160px;
     height:160px;
+
+    /* 出現 → 浮遊 → 消失 */
     animation:
-        spinIn 2.2s cubic-bezier(.18,1.15,.3,1),
-        float 4s ease-in-out infinite 2.2s,
-        vanish 2.4s ease-in-out 6.4s forwards;
+        spinIn 3.2s ease-out,
+        float 4s ease-in-out infinite 3.2s,
+        vanish 1.8s ease-in-out 7.0s forwards;
 }
 
 /* 真ん中の◯（穴あき輪っか） */
@@ -62,8 +64,7 @@ body{
         0 0 55px #ffee55,
         0 0 90px rgba(255,255,120,.9);
 
-    animation:
-        pulse 2.4s ease-in-out infinite;
+    animation:pulse 2.4s ease-in-out infinite;
 }
 
 /* ===========================
@@ -75,13 +76,15 @@ body{
     width:14px;
     height:14px;
     border-radius:50%;
-    animation:explode 1.8s ease-out forwards;
+
+    /* 粒子はずっと発散し続ける */
+    animation:spread 2.2s ease-out infinite;
 }
 
 .green{ background:#00ff88; box-shadow:0 0 25px #00ff88; }
 .yellow{ background:#ffee55; box-shadow:0 0 25px #ffee55; }
 
-/* 粒子の初期位置 */
+/* 粒子の初期位置（全部中心） */
 .p1{ left:50%; top:50%; }
 .p2{ left:50%; top:50%; }
 .p3{ left:50%; top:50%; }
@@ -93,11 +96,20 @@ body{
    アニメーション
 =========================== */
 
-/* ゆっくり回転して出てくる */
+/* ゆっくり回転して出てくる（侃の要望） */
 @keyframes spinIn{
-    0%{transform:scale(0) rotate(0deg); opacity:0;}
-    40%{transform:scale(0.8) rotate(360deg); opacity:1;}
-    100%{transform:scale(1) rotate(720deg); opacity:1;}
+    0%{
+        transform:scale(0) rotate(0deg);
+        opacity:0;
+    }
+    40%{
+        transform:scale(0.7) rotate(360deg);
+        opacity:1;
+    }
+    100%{
+        transform:scale(1) rotate(1080deg);
+        opacity:1;
+    }
 }
 
 /* 浮遊 */
@@ -114,28 +126,29 @@ body{
     100%{transform:translate(-50%,-50%) scale(1);}
 }
 
-/* 粒子爆発（飛距離を大幅アップ） */
-@keyframes explode{
-    0%{transform:translate(-50%,-50%) scale(0); opacity:1;}
-    100%{transform:translate(var(--x), var(--y)) scale(1.8); opacity:0;}
+/* 粒子がずっと発散し続ける（新しいアニメーション） */
+@keyframes spread{
+    0%{
+        transform:translate(-50%,-50%) scale(0.3);
+        opacity:1;
+    }
+    100%{
+        transform:translate(var(--x), var(--y)) scale(1.8);
+        opacity:0;
+    }
 }
 
-/* 後ろに下がって消える（演出長め） */
+/* 後ろに下がって消える（途中で止まらないように調整） */
 @keyframes vanish{
     0%{
-        transform:scale(1) translateY(0) translateZ(0);
+        transform:scale(1) translateY(0);
         opacity:1;
         filter:blur(0px);
     }
-    50%{
-        transform:scale(0.6) translateY(60px) translateZ(-120px);
-        opacity:.6;
-        filter:blur(4px);
-    }
     100%{
-        transform:scale(0.2) translateY(180px) translateZ(-260px);
+        transform:scale(0.2) translateY(160px);
         opacity:0;
-        filter:blur(8px);
+        filter:blur(6px);
     }
 }
 
@@ -145,13 +158,13 @@ body{
 
     <div class="totem">
 
-        <!-- 粒子（飛距離を大幅に伸ばした） -->
-        <div class="particle green p1" style="--x:-160px; --y:-240px;"></div>
-        <div class="particle yellow p2" style="--x:180px; --y:-260px;"></div>
-        <div class="particle green p3" style="--x:-220px; --y:80px;"></div>
-        <div class="particle yellow p4" style="--x:240px; --y:100px;"></div>
-        <div class="particle green p5" style="--x:-100px; --y:220px;"></div>
-        <div class="particle yellow p6" style="--x:120px; --y:210px;"></div>
+        <!-- 粒子（飛距離をさらに伸ばした） -->
+        <div class="particle green p1" style="--x:-200px; --y:-300px;"></div>
+        <div class="particle yellow p2" style="--x:240px; --y:-320px;"></div>
+        <div class="particle green p3" style="--x:-260px; --y:120px;"></div>
+        <div class="particle yellow p4" style="--x:280px; --y:140px;"></div>
+        <div class="particle green p5" style="--x:-140px; --y:260px;"></div>
+        <div class="particle yellow p6" style="--x:160px; --y:240px;"></div>
 
         <!-- 真ん中の◯（穴あき輪っか） -->
         <div class="core"></div>
