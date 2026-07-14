@@ -18,7 +18,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- カテゴリボタンをチャット内に表示 ---
+# --- カテゴリボタン ---
 with st.chat_message("assistant"):
     st.write("どのカテゴリで相談しますか？")
     cols = st.columns(3)
@@ -43,11 +43,13 @@ with st.chat_message("assistant"):
     if cols2[2].button("生活の困りごと（停電・断水）"):
         st.session_state.selected_category = "生活"
 
-# --- カテゴリが選ばれたら表示 ---
+# --- カテゴリが選ばれたらチャット履歴に追加（ここが重要） ---
 if st.session_state.selected_category:
-    with st.chat_message("assistant"):
-        st.write(f"カテゴリ：**{st.session_state.selected_category}** が選ばれました。")
-        st.write("相談内容を入力してください。")
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": f"カテゴリ：{st.session_state.selected_category} が選ばれました。\n相談内容を入力してください。"
+    })
+    st.session_state.selected_category = None
 
 # --- ユーザー入力 ---
 user_input = st.chat_input("相談内容を入力")
