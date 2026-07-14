@@ -1,122 +1,149 @@
 import streamlit as st
 import streamlit.components.v1 as components
-import base64
 
-st.set_page_config(page_title="Trophy", layout="centered")
+st.set_page_config(
+    page_title="Totem Effect",
+    page_icon="✨",
+    layout="centered"
+)
 
-with open("trophy.png", "rb") as f:
-    img = base64.b64encode(f.read()).decode()
-
-html = f"""
+html = """
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
+<meta charset="UTF-8">
+<title>Totem Effect</title>
 
 <style>
 
-html,body{{
-margin:0;
-background:white;
-overflow:hidden;
-}}
-
-.scene{{
-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-}}
-
-.trophy{{
-width:260px;
-
-animation:
-summon 1.2s ease-out,
-float 2.8s ease-in-out infinite 1.2s,
-glow 2s ease-in-out infinite;
+/* 背景は白 */
+body{
+    margin:0;
+    background:white;
+    overflow:hidden;
 }
 
-.trophy img{{
-width:100%;
-display:block;
-}}
+.scene{
+    width:100vw;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
 
-@keyframes summon{{
+/* ===========================
+   トーテム ○
+=========================== */
 
-0%{{
-opacity:0;
-transform:
-translateY(180px)
-scale(.2)
-rotate(-40deg);
-}}
+.totem{
+    position:relative;
+    width:140px;
+    height:140px;
+    animation:
+        spinIn 0.9s cubic-bezier(.18,1.15,.3,1),
+        float 3s ease-in-out infinite 1s,
+        vanish 1.2s ease-in-out 3.2s forwards;
+}
 
-60%{{
-opacity:1;
-transform:
-translateY(-20px)
-scale(1.15)
-rotate(8deg);
-}}
+/* 中央の丸 */
+.core{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:80px;
+    height:80px;
+    background:white;
+    border-radius:50%;
 
-100%{{
-transform:
-translateY(0)
-scale(1)
-rotate(0deg);
-}}
+    box-shadow:
+        0 0 20px #00ff88,
+        0 0 40px #ffee55,
+        0 0 70px rgba(255,255,120,.9);
 
-}}
+    animation:
+        pulse 1.8s ease-in-out infinite;
+}
 
-@keyframes float{{
+/* ===========================
+   粒子（緑・黄色）
+=========================== */
 
-0%{{transform:translateY(0);}}
+.particle{
+    position:absolute;
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    animation:explode 1.2s ease-out forwards;
+}
 
-50%{{transform:translateY(-12px);}}
+.green{ background:#00ff88; box-shadow:0 0 20px #00ff88; }
+.yellow{ background:#ffee55; box-shadow:0 0 20px #ffee55; }
 
-100%{{transform:translateY(0);}}
+/* 粒子の初期位置 */
+.p1{ left:50%; top:50%; }
+.p2{ left:50%; top:50%; }
+.p3{ left:50%; top:50%; }
+.p4{ left:50%; top:50%; }
+.p5{ left:50%; top:50%; }
+.p6{ left:50%; top:50%; }
 
-}}
+/* ===========================
+   アニメーション
+=========================== */
 
-@keyframes glow{{
+/* くるくる召喚 */
+@keyframes spinIn{
+    0%{transform:scale(0) rotate(0deg); opacity:0;}
+    60%{transform:scale(1.3) rotate(720deg); opacity:1;}
+    100%{transform:scale(1) rotate(1080deg); opacity:1;}
+}
 
-0%{{
-filter:
-drop-shadow(0 0 10px gold);
-}}
+/* 浮遊 */
+@keyframes float{
+    0%{transform:translateY(0);}
+    50%{transform:translateY(-12px);}
+    100%{transform:translateY(0);}
+}
 
-50%{{
-filter:
-drop-shadow(0 0 35px gold)
-drop-shadow(0 0 70px orange);
-}}
+/* ○の脈動 */
+@keyframes pulse{
+    0%{transform:translate(-50%,-50%) scale(1);}
+    50%{transform:translate(-50%,-50%) scale(1.25);}
+    100%{transform:translate(-50%,-50%) scale(1);}
+}
 
-100%{{
-filter:
-drop-shadow(0 0 10px gold);
-}}
+/* 粒子爆発 */
+@keyframes explode{
+    0%{transform:translate(-50%,-50%) scale(0); opacity:1;}
+    100%{transform:translate(var(--x), var(--y)) scale(1.4); opacity:0;}
+}
 
-}}
+/* 後ろに下がって消える */
+@keyframes vanish{
+    0%{transform:scale(1) translateY(0); opacity:1;}
+    100%{transform:scale(0.2) translateY(120px); opacity:0;}
+}
 
 </style>
 
-</head>
-
-<body>
-
 <div class="scene">
 
-<div class="trophy">
+    <div class="totem">
 
-<img src="data:image/png;base64,{img}">
+        <!-- 粒子（方向をCSS変数で指定） -->
+        <div class="particle green p1" style="--x:-80px; --y:-120px;"></div>
+        <div class="particle yellow p2" style="--x:90px; --y:-140px;"></div>
+        <div class="particle green p3" style="--x:-120px; --y:40px;"></div>
+        <div class="particle yellow p4" style="--x:130px; --y:60px;"></div>
+        <div class="particle green p5" style="--x:-40px; --y:140px;"></div>
+        <div class="particle yellow p6" style="--x:60px; --y:130px;"></div>
+
+        <!-- 中央の○ -->
+        <div class="core"></div>
+
+    </div>
 
 </div>
 
-</div>
-
-</body>
-
-</html>
-"""
-
-components.html(html, height=600)
+""", unsafe_allow_html=True)
