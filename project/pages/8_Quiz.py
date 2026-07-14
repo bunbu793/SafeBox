@@ -16,7 +16,7 @@ if "last_correct" not in st.session_state:
     st.session_state.last_correct = None
 
 # -------------------------
-# ○ × ＋ トロフィー CSS
+# ○ × ＋ トロフィー CSS（perfect）
 # -------------------------
 st.markdown("""
 <style>
@@ -32,6 +32,7 @@ st.markdown("""
     box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
 }
 
+/* ○ × */
 .mark {
     position: absolute;
     top: -20px;
@@ -40,7 +41,6 @@ st.markdown("""
     font-weight: bold;
     animation: pop 0.4s ease-out forwards;
 }
-
 .correct { color: #2ecc71; }
 .wrong { color: #e74c3c; }
 
@@ -50,20 +50,36 @@ st.markdown("""
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* トロフィー演出（回転＋光） */
+/* トロフィー（遠→近＋横回転＋光） */
 .trophy {
     font-size: 120px;
     text-align: center;
-    animation: pop 0.6s ease-out forwards, rotate 2s linear infinite, shine 2s ease-in-out infinite;
     display: block;
     margin-top: 10px;
+    animation: flyin 1.2s ease-out forwards, shine 2s ease-in-out infinite;
 }
 
-@keyframes rotate {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+/* 遠くから近くへ＋横回転 */
+@keyframes flyin {
+    0% {
+        transform: translateY(-200px) scale(0.1) rotateY(0deg);
+        opacity: 0;
+    }
+    40% {
+        transform: translateY(-80px) scale(0.5) rotateY(180deg);
+        opacity: 0.7;
+    }
+    70% {
+        transform: translateY(-20px) scale(1.2) rotateY(360deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(0px) scale(1) rotateY(360deg);
+        opacity: 1;
+    }
 }
 
+/* 光る */
 @keyframes shine {
     0% { filter: drop-shadow(0px 0px 0px gold); }
     50% { filter: drop-shadow(0px 0px 25px gold); }
@@ -96,7 +112,7 @@ QUESTIONS = [
 # -------------------------
 # スタートボタン
 # -------------------------
-st.title("📝 防災クイズ（○＋トロフィー版）")
+st.title("📝 防災クイズ（Perfect Trophy Edition）")
 
 if st.button("クイズを始める"):
     st.session_state.questions = QUESTIONS
