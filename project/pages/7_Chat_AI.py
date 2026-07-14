@@ -43,26 +43,8 @@ if "messages" not in st.session_state:
 if "category" not in st.session_state:
     st.session_state.category = None
 
-if "today_tip" not in st.session_state:
-    st.session_state.today_tip = None
-
 if "welcome" not in st.session_state:
     st.session_state.welcome = False
-
-# ==================================================
-# 豆知識
-# ==================================================
-
-tips = [
-    "💧 水は1人1日3Lを目安に備えましょう。",
-    "🔋 モバイルバッテリーは満充電にしておきましょう。",
-    "📦 非常食はローリングストックがおすすめです。",
-    "🏠 家具固定で地震被害を減らせます。",
-    "📞 災害用伝言ダイヤル171を覚えておきましょう。"
-]
-
-if st.session_state.today_tip is None:
-    st.session_state.today_tip = random.choice(tips)
 
 # ==================================================
 # 回答データ
@@ -130,7 +112,7 @@ responses = {
 # ==================================================
 
 for msg in st.session_state.messages:
-    with st.chat_message(msg["role"], avatar="🛡" if msg["role"]=="assistant" else "👤"):
+    with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
 # ==================================================
@@ -144,6 +126,9 @@ if not st.session_state.welcome:
 ## 👋 ようこそ！
 
 私は **SafeBox 防災コンシェルジュ** です。
+専門家ではありませんが、あなたの状況に合わせて  
+できる限りの防災知識をお伝えします。  
+一緒に安全を守る方法を考えていきましょう。
 
 相談したいカテゴリを選んでください。
 """
@@ -157,7 +142,7 @@ if not st.session_state.welcome:
 
 if st.session_state.category is None:
 
-    with st.chat_message("assistant", avatar="🛡"):
+    with st.chat_message("assistant"):
         st.write("📂 カテゴリを選択してください")
 
         col1, col2, col3 = st.columns(3)
@@ -189,29 +174,18 @@ if st.session_state.category is None:
             st.rerun()
 
 # ==================================================
-# カテゴリ表示
+# カテゴリが選ばれたら即回答（相談内容は固定）
 # ==================================================
 
 if st.session_state.category:
-    st.info(f"現在のカテゴリ：**{st.session_state.category}**")
-
-# ==================================================
-# 入力欄
-# ==================================================
-
-user_input = st.chat_input("相談内容を入力してください")
-
-if user_input:
-
-    st.session_state.messages.append({
-        "role": "user",
-        "content": user_input
-    })
 
     data = responses[st.session_state.category]
 
     answer = f"""
 ## {data['title']}
+
+### 相談内容  
+**どうすればいい？**
 
 ### ① 結論  
 {data['conclusion']}
