@@ -16,10 +16,11 @@ if "last_correct" not in st.session_state:
     st.session_state.last_correct = None
 
 # -------------------------
-# ○ × ＋ トロフィー CSS（perfect）
+# CSS（○×＋新トロフィー＋D＋Eアニメーション）
 # -------------------------
 st.markdown("""
 <style>
+
 .card {
     width: 70%;
     margin: auto;
@@ -50,46 +51,105 @@ st.markdown("""
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* トロフィー（遠→近＋横回転＋光） */
+/* -------------------------
+   新トロフィー（CSSで描く）
+------------------------- */
 .trophy {
-    font-size: 120px;
-    text-align: center;
-    display: block;
-    margin-top: 10px;
-    animation: flyin 1.2s ease-out forwards, shine 2s ease-in-out infinite;
+    width: 120px;
+    height: 160px;
+    margin: auto;
+    position: relative;
+
+    animation: zoomIn 0.8s ease-out forwards,
+               explode 0.8s ease-out 0.8s forwards,
+               rise 1.2s ease-out 1.6s forwards,
+               shine 2s ease-in-out infinite 2.8s;
 }
 
-/* 遠くから近くへ＋横回転 */
-@keyframes flyin {
+/* カップ部分 */
+.trophy .cup {
+    width: 100px;
+    height: 70px;
+    background: gold;
+    border-radius: 50px 50px 20px 20px;
+    margin: auto;
+    position: relative;
+    box-shadow: 0 0 20px rgba(255,215,0,0.7);
+}
+
+/* ハンドル */
+.trophy .handle-left,
+.trophy .handle-right {
+    width: 30px;
+    height: 50px;
+    border: 8px solid gold;
+    border-radius: 50%;
+    position: absolute;
+    top: 10px;
+}
+
+.trophy .handle-left { left: -25px; }
+.trophy .handle-right { right: -25px; }
+
+/* 台座 */
+.trophy .base {
+    width: 80px;
+    height: 40px;
+    background: #8b5a2b;
+    margin: auto;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+/* -------------------------
+   D：ズームイン（奥→手前）
+------------------------- */
+@keyframes zoomIn {
     0% {
-        transform: translateY(-200px) scale(0.1) rotateY(0deg);
+        transform: scale(0.1) translateY(-200px);
         opacity: 0;
     }
-    40% {
-        transform: translateY(-80px) scale(0.5) rotateY(180deg);
-        opacity: 0.7;
-    }
-    70% {
-        transform: translateY(-20px) scale(1.2) rotateY(360deg);
+    60% {
+        transform: scale(1.3) translateY(20px);
         opacity: 1;
     }
     100% {
-        transform: translateY(0px) scale(1) rotateY(360deg);
+        transform: scale(1) translateY(0px);
         opacity: 1;
     }
 }
 
-/* 光る */
-@keyframes shine {
+/* -------------------------
+   D：光の爆発
+------------------------- */
+@keyframes explode {
     0% { filter: drop-shadow(0px 0px 0px gold); }
-    50% { filter: drop-shadow(0px 0px 25px gold); }
-    100% { filter: drop-shadow(0px 0px 0px gold); }
+    50% { filter: drop-shadow(0px 0px 40px gold); }
+    100% { filter: drop-shadow(0px 0px 10px gold); }
 }
+
+/* -------------------------
+   E：上昇
+------------------------- */
+@keyframes rise {
+    0% { transform: translateY(0px); }
+    100% { transform: translateY(-20px); }
+}
+
+/* -------------------------
+   E：光の輪（永続）
+------------------------- */
+@keyframes shine {
+    0% { filter: drop-shadow(0px 0px 5px gold); }
+    50% { filter: drop-shadow(0px 0px 25px gold); }
+    100% { filter: drop-shadow(0px 0px 5px gold); }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
 # -------------------------
-# 問題データ（簡易版）
+# 問題データ
 # -------------------------
 QUESTIONS = [
     {
@@ -112,7 +172,7 @@ QUESTIONS = [
 # -------------------------
 # スタートボタン
 # -------------------------
-st.title("📝 防災クイズ（Perfect Trophy Edition）")
+st.title("📝 防災クイズ（Ultimate Trophy Edition）")
 
 if st.button("クイズを始める"):
     st.session_state.questions = QUESTIONS
@@ -143,11 +203,18 @@ if st.session_state.questions:
             st.session_state.last_correct = correct
             st.session_state.answered = True
 
-        # ○×表示＋正解ならトロフィー
+        # ○×＋新トロフィー
         if st.session_state.answered:
             if st.session_state.last_correct:
                 st.markdown("<div class='mark correct'>○</div>", unsafe_allow_html=True)
-                st.markdown("<div class='trophy'>🏆</div>", unsafe_allow_html=True)
+                st.markdown("""
+                <div class="trophy">
+                    <div class="cup"></div>
+                    <div class="handle-left"></div>
+                    <div class="handle-right"></div>
+                    <div class="base"></div>
+                </div>
+                """, unsafe_allow_html=True)
             else:
                 st.markdown("<div class='mark wrong'>×</div>", unsafe_allow_html=True)
 
