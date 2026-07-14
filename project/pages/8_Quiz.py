@@ -1,7 +1,5 @@
 import streamlit as st
 import random
-from streamlit_lottie import st_lottie
-import json
 
 st.set_page_config(page_title="防災クイズ", page_icon="📝")
 
@@ -64,70 +62,31 @@ st.markdown("""
     70% { transform: scale(1.3); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
 }
+
+/* トロフィー演出（回転＋光） */
+.trophy {
+    font-size: 120px;
+    text-align: center;
+    animation: pop 0.6s ease-out forwards, rotate 2s linear infinite, shine 2s ease-in-out infinite;
+    display: block;
+    margin-top: 20px;
+}
+
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes shine {
+    0% { filter: drop-shadow(0px 0px 0px gold); }
+    50% { filter: drop-shadow(0px 0px 25px gold); }
+    100% { filter: drop-shadow(0px 0px 0px gold); }
+}
 </style>
 """, unsafe_allow_html=True)
 
 # -------------------------
-# トロフィーアニメーション
-# -------------------------
-def load_lottie():
-    trophy_json = {
-        "v": "5.5.7",
-        "fr": 30,
-        "ip": 0,
-        "op": 60,
-        "w": 500,
-        "h": 500,
-        "nm": "trophy",
-        "ddd": 0,
-        "assets": [],
-        "layers": [
-            {
-                "ddd": 0,
-                "ind": 1,
-                "ty": 4,
-                "nm": "Trophy",
-                "sr": 1,
-                "ks": {
-                    "o": {"a": 0, "k": 100},
-                    "r": {"a": 1, "k": [
-                        {"t": 0, "s": 0},
-                        {"t": 60, "s": 360}
-                    ]},
-                    "p": {"a": 0, "k": [250, 250, 0]},
-                    "a": {"a": 0, "k": [0, 0, 0]},
-                    "s": {"a": 0, "k": [100, 100, 100]}
-                },
-                "shapes": [
-                    {
-                        "ty": "gr",
-                        "it": [
-                            {
-                                "ty": "sh",
-                                "ks": {
-                                    "a": 0,
-                                    "k": {
-                                        "i": [[0,0],[0,0],[0,0]],
-                                        "o": [[0,0],[0,0],[0,0]],
-                                        "v": [[0,-100],[100,100],[-100,100]],
-                                        "c": True
-                                    }
-                                }
-                            },
-                            {
-                                "ty": "fl",
-                                "c": {"a": 0, "k": [1, 0.8, 0, 1]}
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
-    return trophy_json
-
-# -------------------------
-# 問題データ（簡易版）
+# 問題データ（②で本格100問を送る）
 # -------------------------
 def get_questions_for_rank(rank):
     return [
@@ -162,7 +121,7 @@ with col2:
     if st.button("🔥 テスト問題を解く"):
         st.session_state.mode = "test"
         all_qs = get_questions_for_rank(st.session_state.rank)
-        st.session_state.questions = random.sample(all_qs, 10)
+        st.session_state.questions = random.sample(all_qs, min(10, len(all_qs)))
         st.session_state.current_index = 0
         st.session_state.results = []
         st.session_state.wrong_questions = []
@@ -247,7 +206,7 @@ if st.session_state.mode in ["practice", "test", "review"]:
 
                 st.success("ランクアップしました！")
 
-                # トロフィーアニメーション
-                st_lottie(load_lottie(), height=300)
+                # トロフィーアニメーション（回転＋光）
+                st.markdown("<div class='trophy'>🏆</div>", unsafe_allow_html=True)
 
                 st.session_state.mode = None
