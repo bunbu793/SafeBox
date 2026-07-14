@@ -24,6 +24,8 @@ if "test_passed" not in st.session_state:
     st.session_state.test_passed = False
 if "answered" not in st.session_state:
     st.session_state.answered = False
+if "last_answer_correct" not in st.session_state:
+    st.session_state.last_answer_correct = None
 
 # -------------------------
 # ○ × アニメーション CSS
@@ -165,6 +167,7 @@ if st.session_state.mode in ["practice", "test", "review"]:
         if st.button("回答する"):
             correct = (user_answer == q["answer"])
             st.session_state.results.append(correct)
+            st.session_state.last_answer_correct = correct
             st.session_state.answered = True
 
             if not correct and st.session_state.mode == "practice":
@@ -172,7 +175,7 @@ if st.session_state.mode in ["practice", "test", "review"]:
 
         # ○×表示（回答後のみ）
         if st.session_state.answered:
-            if st.session_state.results[-1]:
+            if st.session_state.last_answer_correct:
                 st.markdown("<div class='mark correct'>○</div>", unsafe_allow_html=True)
             else:
                 st.markdown("<div class='mark wrong'>×</div>", unsafe_allow_html=True)
