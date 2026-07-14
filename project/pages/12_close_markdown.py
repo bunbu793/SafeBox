@@ -30,12 +30,12 @@ body{
     justify-content:center;
     align-items:center;
 
-    /* ✖ が奥に消えないようにする */
+    /* 3D回転が見えるようにする */
     perspective: 900px;
 }
 
 /* ===========================
-   トーテム ✖（赤）
+   トーテム ✖（図形）
 =========================== */
 
 .totem{
@@ -43,7 +43,6 @@ body{
     width:160px;
     height:160px;
 
-    /* ✖ を3Dのまま回転させるために必須 */
     transform-style: preserve-3d;
 
     animation:
@@ -52,7 +51,7 @@ body{
         vanish 1.6s ease-in-out 7.0s forwards;
 }
 
-/* 真ん中の✖（赤） */
+/* ✖ を図形で作る（裏返っても見える） */
 .core{
     position:absolute;
     left:50%;
@@ -60,20 +59,32 @@ body{
     transform:translate(-50%,-50%);
     width:100px;
     height:100px;
+}
 
-    display:flex;
-    justify-content:center;
-    align-items:center;
-
-    font-size:90px;
-    font-weight:900;
-    color:#ff2b2b;
-    text-shadow:
+.core::before,
+.core::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:100px;
+    height:14px;
+    background:#ff2b2b;
+    box-shadow:
         0 0 20px #ff2b2b,
         0 0 40px #ff7b00,
         0 0 70px rgba(255,120,0,.9);
+    transform-origin:center;
+}
 
-    animation:pulse 2.4s ease-in-out infinite;
+/* 斜め線1 */
+.core::before{
+    transform:translate(-50%,-50%) rotate(45deg);
+}
+
+/* 斜め線2 */
+.core::after{
+    transform:translate(-50%,-50%) rotate(-45deg);
 }
 
 /* ===========================
@@ -128,13 +139,6 @@ body{
     100%{transform:translateY(0);}
 }
 
-/* 脈動 */
-@keyframes pulse{
-    0%{transform:translate(-50%,-50%) scale(1);}
-    50%{transform:translate(-50%,-50%) scale(1.35);}
-    100%{transform:translate(-50%,-50%) scale(1);}
-}
-
 /* 粒子がずっと発散し続ける */
 @keyframes spread{
     0%{
@@ -147,7 +151,7 @@ body{
     }
 }
 
-/* 後ろに下がって消える */
+/* 消失 */
 @keyframes vanish{
     0%{
         transform:scale(1) translateY(0);
@@ -175,8 +179,8 @@ body{
         <div class="particle red p5" style="--x:-140px; --y:260px;"></div>
         <div class="particle yellow p6" style="--x:160px; --y:240px;"></div>
 
-        <!-- ✖ 本体 -->
-        <div class="core">✖</div>
+        <!-- ✖ 本体（図形） -->
+        <div class="core"></div>
 
     </div>
 
