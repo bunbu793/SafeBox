@@ -29,6 +29,9 @@ body{
     display:flex;
     justify-content:center;
     align-items:center;
+
+    /* ✖ が奥に消えないようにする */
+    perspective: 800px;
 }
 
 /* ===========================
@@ -61,7 +64,7 @@ body{
 
     font-size:90px;
     font-weight:900;
-    color:#ff2b2b; /* 赤い✖ */
+    color:#ff2b2b;
     text-shadow:
         0 0 20px #ff2b2b,
         0 0 40px #ff7b00,
@@ -87,7 +90,7 @@ body{
 .red{ background:#ff2b2b; box-shadow:0 0 25px #ff2b2b; }
 .yellow{ background:#ffee55; box-shadow:0 0 25px #ffee55; }
 
-/* 粒子の初期位置（全部中心） */
+/* 粒子の初期位置 */
 .p1{ left:50%; top:50%; }
 .p2{ left:50%; top:50%; }
 .p3{ left:50%; top:50%; }
@@ -141,7 +144,7 @@ body{
     }
 }
 
-/* 後ろに下がって消える（途中で止まらない） */
+/* 後ろに下がって消える */
 @keyframes vanish{
     0%{
         transform:scale(1) translateY(0);
@@ -161,7 +164,7 @@ body{
 
     <div class="totem">
 
-        <!-- 粒子（飛距離をさらに伸ばした） -->
+        <!-- 粒子 -->
         <div class="particle orange p1" style="--x:-200px; --y:-300px;"></div>
         <div class="particle red p2" style="--x:240px; --y:-320px;"></div>
         <div class="particle yellow p3" style="--x:-260px; --y:120px;"></div>
@@ -169,7 +172,7 @@ body{
         <div class="particle red p5" style="--x:-140px; --y:260px;"></div>
         <div class="particle yellow p6" style="--x:160px; --y:240px;"></div>
 
-        <!-- 真ん中の✖ -->
+        <!-- ✖ 本体 -->
         <div class="core">✖</div>
 
     </div>
