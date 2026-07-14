@@ -44,7 +44,7 @@ body{
     animation:
         spinIn 3.2s ease-out,
         float 4s ease-in-out infinite 3.2s,
-        vanish 1.8s ease-in-out 7.0s forwards;
+        vanish 1.6s ease-in-out 7.0s forwards;
 }
 
 /* 真ん中の◯（穴あき輪っか） */
@@ -96,18 +96,18 @@ body{
    アニメーション
 =========================== */
 
-/* ゆっくり回転して出てくる（侃の要望） */
+/* Y軸でゆっくり回転して出てくる（侃の要望） */
 @keyframes spinIn{
     0%{
-        transform:scale(0) rotate(0deg);
+        transform:scale(0) rotateY(0deg);
         opacity:0;
     }
     40%{
-        transform:scale(0.7) rotate(360deg);
+        transform:scale(0.7) rotateY(180deg);
         opacity:1;
     }
     100%{
-        transform:scale(1) rotate(1080deg);
+        transform:scale(1) rotateY(720deg);
         opacity:1;
     }
 }
