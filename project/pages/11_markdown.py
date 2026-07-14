@@ -37,8 +37,8 @@ body{
 
 .trophy{
     position:relative;
-    width:180px;
-    height:260px;
+    width:200px;
+    height:280px;
     animation:
         summon 1.6s cubic-bezier(.18,1.15,.3,1),
         float 3s ease-in-out infinite 1.6s,
@@ -48,73 +48,63 @@ body{
 /* カップ（画像の形に寄せた2D） */
 .cup{
     position:relative;
-    width:150px;
-    height:110px;
+    width:160px;
+    height:120px;
     margin:auto;
     background:#FFD54A;
-    border-radius:0 0 70px 70px;
-    border-top:10px solid #FFE9A0;
+    border-radius:80px 80px 60px 60px;
 }
 
 /* ===========================
-   持ち手（画像の形に寄せた楕円）
+   持ち手（穴の開いた楕円）
 =========================== */
 
 .handle{
     position:absolute;
-    top:20px;
-    width:55px;
-    height:70px;
+    top:25px;
+
+    width:70px;
+    height:90px;
+
     background:#FFD54A;
-    border:10px solid #FFD54A;
     border-radius:50%;
+
+    /* 穴を作る（内側を白で抜く） */
+    box-shadow:
+        inset 0 0 0 22px #ffffff; /* 内側の穴 */
 }
 
 .handle-left{
-    left:-40px;
+    left:-50px;
 }
 
 .handle-right{
-    right:-40px;
+    right:-50px;
 }
 
 /* ===========================
-   星（CSSで描く実際の星形）
+   星 → 丸に変更
 =========================== */
 
-.star-shape{
+.star{
     position:absolute;
     left:50%;
-    top:28%;
-    transform:translate(-50%,-50%) scale(1);
-    width:0;
-    height:0;
+    top:40%;
+    transform:translate(-50%,-50%);
 
-    /* 星の形（CSSで描く） */
-    border-right: 30px solid transparent;
-    border-left: 30px solid transparent;
-    border-bottom: 45px solid white;
+    width:45px;
+    height:45px;
 
-    filter:
-        drop-shadow(0 0 8px gold)
-        drop-shadow(0 0 18px orange);
+    background:white;
+    border-radius:50%;
+
+    box-shadow:
+        0 0 10px gold,
+        0 0 20px orange;
 
     animation:
         starPulse 1.8s ease-in-out infinite,
         starFloat 2.8s ease-in-out infinite;
-}
-
-.star-shape::before{
-    content:"";
-    position:absolute;
-    top:-28px;
-    left:-30px;
-    width:0;
-    height:0;
-
-    border-right: 30px solid transparent;
-    border-left: 30px solid transparent;
-    border-top: 45px solid white;
 }
 
 /* ===========================
@@ -122,23 +112,24 @@ body{
 =========================== */
 
 .stem{
-    width:34px;
-    height:60px;
+    width:40px;
+    height:70px;
     margin:auto;
     background:#FFD54A;
+    border-radius:6px;
 }
 
 .base1{
-    width:82px;
-    height:24px;
+    width:100px;
+    height:30px;
     margin:auto;
     background:#8B5200;
     border-radius:6px 6px 0 0;
 }
 
 .base2{
-    width:130px;
-    height:18px;
+    width:150px;
+    height:22px;
     margin:auto;
     background:#5A3100;
     border-radius:0 0 8px 8px;
@@ -152,8 +143,8 @@ body{
     position:absolute;
     left:50%;
     top:42%;
-    width:230px;
-    height:230px;
+    width:260px;
+    height:260px;
     transform:translate(-50%,-50%);
     border-radius:50%;
     border:3px solid rgba(255,235,120,.7);
@@ -185,8 +176,8 @@ body{
     left:50%;
     top:45%;
     transform:translate(-50%,-50%);
-    width:240px;
-    height:240px;
+    width:260px;
+    height:260px;
     border-radius:50%;
     background:radial-gradient(circle,
         rgba(255,240,160,.55),
@@ -203,7 +194,7 @@ body{
     left:50%;
     top:-170px;
     transform:translateX(-50%);
-    width:110px;
+    width:130px;
     height:520px;
     background:linear-gradient(
         transparent,
@@ -235,9 +226,9 @@ body{
 }
 
 @keyframes starPulse{
-    0%{transform:translate(-50%,-50%) scale(1);}
-    50%{transform:translate(-50%,-50%) scale(1.18);}
-    100%{transform:translate(-50%,-50%) scale(1);}
+    0%{transform:scale(1);}
+    50%{transform:scale(1.18);}
+    100%{transform:scale(1);}
 }
 
 @keyframes starFloat{
@@ -301,7 +292,7 @@ body{
         <div class="cup">
             <div class="handle handle-left"></div>
             <div class="handle handle-right"></div>
-            <div class="star-shape"></div>
+            <div class="star"></div>
         </div>
 
         <div class="stem"></div>
