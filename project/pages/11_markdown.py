@@ -1,139 +1,181 @@
 import streamlit as st
-import streamlit.components.v1 as components
 
 st.set_page_config(
-    page_title="2D Trophy Totem",
+    page_title="Golden Trophy",
     page_icon="🏆",
     layout="centered"
 )
 
-html = """
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>2D Trophy Totem</title>
-
+st.markdown("""
 <style>
 
-/* 背景を白に */
 body{
-    margin:0;
-    background:#ffffff;
     overflow:hidden;
 }
 
-.scene{
-    width:100vw;
-    height:100vh;
+.trophy-area{
     display:flex;
     justify-content:center;
     align-items:center;
+    height:650px;
 }
 
-/* ===========================
-   トロフィー本体（最初の形）
-=========================== */
-
+/* トロフィー全体 */
 .trophy{
     position:relative;
-    width:200px;
-    height:280px;
+    width:260px;
+    height:420px;
     animation:
-        summon 1.6s cubic-bezier(.18,1.15,.3,1),
-        float 3s ease-in-out infinite 1.6s,
-        glow 2.5s ease-in-out infinite;
+        summon 1.8s ease-out,
+        float 4s ease-in-out infinite 2s;
 }
 
-/* カップ（最初の丸い形） */
+/* カップ */
 .cup{
     position:relative;
-    width:160px;
-    height:120px;
+    width:170px;
+    height:145px;
     margin:auto;
-    background:#FFD54A;
-    border-radius:80px 80px 60px 60px;
+    border-radius:0 0 90px 90px;
+    overflow:hidden;
+    background:
+        linear-gradient(
+            90deg,
+            #8d6400 0%,
+            #c99b25 12%,
+            #f6d46b 28%,
+            #fff6cb 48%,
+            #f6d46b 68%,
+            #c99b25 86%,
+            #8d6400 100%
+        );
+    box-shadow:
+        inset 0 10px 12px rgba(255,255,255,.45),
+        inset -10px -14px 20px rgba(0,0,0,.18),
+        0 15px 30px rgba(0,0,0,.28);
+    border-top:8px solid #fff3c2;
 }
 
-/* 持ち手（最初の丸い板状） */
-.handle{
+/* カップ光沢 */
+.cup::before{
+    content:"";
     position:absolute;
-    top:25px;
+    top:12px;
+    left:18px;
+    width:45px;
+    height:90px;
+    background:rgba(255,255,255,.35);
+    border-radius:50%;
+    filter:blur(8px);
+}
+
+/* 横に流れる反射 */
+.cup::after{
+    content:"";
+    position:absolute;
+    top:-30px;
+    left:-120px;
+    width:70px;
+    height:240px;
+    background:
+        linear-gradient(
+            rgba(255,255,255,0),
+            rgba(255,255,255,.7),
+            rgba(255,255,255,0)
+        );
+    transform:rotate(20deg);
+    animation:shine 4s linear infinite;
+}
+
+/* 取っ手 */
+.handle-left,
+.handle-right{
+    position:absolute;
+    top:20px;
     width:60px;
     height:60px;
-    background:#FFD54A;
     border-radius:50%;
+    border:12px solid #d7ab32;
+    background:none;
+    box-shadow:inset 0 4px 5px rgba(255,255,255,.4);
 }
 
-.handle-left{
-    left:-40px;
-}
+.handle-left{ left:-42px; border-right:none; }
+.handle-right{ right:-42px; border-left:none; }
 
-.handle-right{
-    right:-40px;
-}
-
-/* 中央の丸（最初の白い丸） */
-.center-circle{
+/* 星（文字★） */
+.star{
     position:absolute;
+    top:22%;
     left:50%;
-    top:40%;
     transform:translate(-50%,-50%);
-    width:50px;
-    height:50px;
-    background:white;
-    border-radius:50%;
-    box-shadow:
-        0 0 10px gold,
-        0 0 20px orange;
+    font-size:64px;
+    background:
+        linear-gradient(
+            180deg,
+            #ffffff 0%,
+            #fff6b0 20%,
+            #ffe36b 45%,
+            #ffc800 70%,
+            #b67d00 100%
+        );
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    filter:
+        drop-shadow(0 0 8px rgba(255,255,255,.9))
+        drop-shadow(0 0 18px gold)
+        drop-shadow(0 0 35px orange);
     animation:
-        starPulse 1.8s ease-in-out infinite,
-        starFloat 2.8s ease-in-out infinite;
+        pulseStar 2s ease-in-out infinite,
+        starFloat 3s ease-in-out infinite;
 }
 
-/* 柱・台座（最初の形） */
+/* 柱 */
 .stem{
-    width:40px;
-    height:70px;
+    width:42px;
+    height:68px;
     margin:auto;
-    background:#FFD54A;
-    border-radius:6px;
 }
 
-.base1{
-    width:100px;
-    height:30px;
+/* 台座 */
+.base-top{
+    width:90px;
+    height:34px;
     margin:auto;
-    background:#8B5200;
-    border-radius:6px 6px 0 0;
+    border-radius:8px 8px 0 0;
+    background:linear-gradient(180deg,#b06b00,#6d3600);
+    box-shadow:
+        inset 0 3px 4px rgba(255,255,255,.25),
+        0 6px 12px rgba(0,0,0,.35);
 }
 
-.base2{
-    width:150px;
-    height:22px;
+.base-bottom{
+    width:160px;
+    height:24px;
     margin:auto;
-    background:#5A3100;
     border-radius:0 0 8px 8px;
+    background:linear-gradient(180deg,#7d4200,#432000);
+    box-shadow:
+        inset 0 3px 3px rgba(255,255,255,.2),
+        0 8px 18px rgba(0,0,0,.45);
 }
 
-/* ===========================
-   トーテム演出（そのまま）
-=========================== */
-
-.ring{
+/* 光のリング */
+.glow-ring{
     position:absolute;
+    width:230px;
+    height:230px;
     left:50%;
-    top:42%;
-    width:260px;
-    height:260px;
+    top:45%;
     transform:translate(-50%,-50%);
     border-radius:50%;
-    border:3px solid rgba(255,235,120,.7);
-    box-shadow:0 0 25px gold, inset 0 0 18px white;
-    animation:ring 2.2s infinite;
+    border:3px solid rgba(255,235,120,.6);
+    box-shadow:0 0 20px gold, inset 0 0 20px white;
+    animation:ringPulse 2s infinite;
 }
 
-.particle{
+/* パーティクル */
+.spark{
     position:absolute;
     width:8px;
     height:8px;
@@ -142,150 +184,81 @@ body{
     box-shadow:0 0 12px gold, 0 0 25px orange;
 }
 
-.p1{left:20px;top:40px;animation:fly1 2.2s infinite;}
-.p2{right:30px;top:60px;animation:fly2 2.5s infinite;}
-.p3{left:55px;bottom:30px;animation:fly3 2.8s infinite;}
-.p4{right:40px;bottom:20px;animation:fly4 2.3s infinite;}
-.p5{left:50%;top:-10px;animation:fly5 2.6s infinite;}
-.p6{left:50%;bottom:-5px;animation:fly6 2.1s infinite;}
-.p7{left:-5px;top:120px;animation:fly7 2.4s infinite;}
-.p8{right:-5px;top:120px;animation:fly8 2.7s infinite;}
+.spark1{ left:25px; top:20px; animation:particle1 2.4s infinite; }
+.spark2{ right:18px; top:55px; animation:particle2 2.7s infinite; }
+.spark3{ left:60px; bottom:8px; animation:particle3 2.5s infinite; }
+.spark4{ right:55px; bottom:25px; animation:particle4 2.2s infinite; }
+.spark5{ left:50%; top:-10px; animation:particle5 2.8s infinite; }
+.spark6{ left:48%; bottom:-8px; animation:particle6 2.3s infinite; }
 
-.trophy::before{
-    content:"";
-    position:absolute;
-    left:50%;
-    top:45%;
-    transform:translate(-50%,-50%);
-    width:260px;
-    height:260px;
-    border-radius:50%;
-    background:radial-gradient(circle,
-        rgba(255,240,160,.55),
-        rgba(255,215,0,.15),
-        transparent 72%);
-    filter:blur(12px);
-    animation:aura 2.2s ease-in-out infinite;
-    z-index:-5;
-}
-
-.trophy::after{
-    content:"";
-    position:absolute;
-    left:50%;
-    top:-170px;
-    transform:translateX(-50%);
-    width:130px;
-    height:520px;
-    background:linear-gradient(
-        transparent,
-        rgba(255,255,255,.85),
-        rgba(255,230,80,.9),
-        rgba(255,255,255,.85),
-        transparent
-    );
-    filter:blur(22px);
-    animation:beam 2s ease-in-out infinite;
-    z-index:-6;
-}
-
-/* ===========================
-   アニメーション
-=========================== */
-
+/* トーテム召喚 */
 @keyframes summon{
-    0%{opacity:0;transform:translateY(180px) scale(.2) rotate(-80deg);filter:blur(10px);}
-    40%{opacity:1;transform:translateY(-25px) scale(1.15) rotate(12deg);}
-    70%{transform:translateY(8px) scale(.95) rotate(-4deg);}
-    100%{opacity:1;transform:translateY(0) scale(1) rotate(0);filter:none;}
+    0%{opacity:0;transform:translateY(180px) scale(.2) rotate(-80deg);filter:blur(12px);}
+    35%{opacity:1;transform:translateY(-25px) scale(1.15) rotate(12deg);}
+    65%{transform:translateY(8px) scale(.95) rotate(-5deg);}
+    100%{opacity:1;transform:translateY(0) scale(1) rotate(0);filter:blur(0);}
 }
 
+/* 浮遊 */
 @keyframes float{
     0%{transform:translateY(0);}
-    50%{transform:translateY(-10px);}
+    50%{transform:translateY(-14px);}
     100%{transform:translateY(0);}
 }
 
-@keyframes starPulse{
-    0%{transform:scale(1);}
-    50%{transform:scale(1.18);}
-    100%{transform:scale(1);}
+/* 星の脈動 */
+@keyframes pulseStar{
+    0%{transform:translate(-50%,-50%) scale(1);}
+    50%{transform:translate(-50%,-50%) scale(1.18);}
+    100%{transform:translate(-50%,-50%) scale(1);}
 }
 
+/* 星の浮遊 */
 @keyframes starFloat{
     0%{margin-top:0;}
     50%{margin-top:-6px;}
     100%{margin-top:0;}
 }
 
-@keyframes ring{
-    0%{transform:translate(-50%,-50%) scale(.5);opacity:1;}
-    100%{transform:translate(-50%,-50%) scale(1.7);opacity:0;}
+/* 光の輪 */
+@keyframes ringPulse{
+    0%{transform:translate(-50%,-50%) scale(.7);opacity:1;}
+    100%{transform:translate(-50%,-50%) scale(1.4);opacity:0;}
 }
 
-@keyframes fly1{0%{transform:translate(0,0) scale(.4);}100%{transform:translate(-40px,-80px) scale(1.8);opacity:0;}}
-@keyframes fly2{0%{transform:translate(0,0);}100%{transform:translate(45px,-90px);opacity:0;}}
-@keyframes fly3{0%{transform:translate(0,0);}100%{transform:translate(-35px,70px);opacity:0;}}
-@keyframes fly4{0%{transform:translate(0,0);}100%{transform:translate(40px,80px);opacity:0;}}
-@keyframes fly5{0%{transform:translate(-50%,0);}100%{transform:translate(-50%,-120px);opacity:0;}}
-@keyframes fly6{0%{transform:translate(-50%,0);}100%{transform:translate(-50%,100px);opacity:0;}}
-@keyframes fly7{0%{transform:translate(0,0);}100%{transform:translate(-80px,-20px);opacity:0;}}
-@keyframes fly8{0%{transform:translate(0,0);}100%{transform:translate(80px,-20px);opacity:0;}}
-
-@keyframes aura{
-    0%{transform:translate(-50%,-50%) scale(.8);opacity:.35;}
-    50%{transform:translate(-50%,-50%) scale(1.05);opacity:.9;}
-    100%{transform:translate(-50%,-50%) scale(.8);opacity:.35;}
-}
-
-@keyframes beam{
-    0%{opacity:.25;transform:translateX(-50%) scaleY(.6);}
-    50%{opacity:1;transform:translateX(-50%) scaleY(1.2);}
-    100%{opacity:.25;transform:translateX(-50%) scaleY(.6);}
-}
-
-@keyframes glow{
-    0%{filter:drop-shadow(0 0 8px rgba(255,215,0,.25));}
-    50%{filter:drop-shadow(0 0 22px gold) drop-shadow(0 0 45px orange);}
-    100%{filter:drop-shadow(0 0 8px rgba(255,215,0,.25));}
+/* 背景演出 */
+.trophy-area{
+    background:radial-gradient(circle, rgba(255,245,180,.18), transparent 70%);
 }
 
 </style>
-</head>
 
-<body>
+<div class="trophy-area">
+<div class="trophy">
 
-<div class="scene">
+<div class="cup">
 
-    <div class="trophy">
+<div class="glow-ring"></div>
 
-        <div class="ring"></div>
+<div class="spark spark1"></div>
+<div class="spark spark2"></div>
+<div class="spark spark3"></div>
+<div class="spark spark4"></div>
+<div class="spark spark5"></div>
+<div class="spark spark6"></div>
 
-        <div class="particle p1"></div>
-        <div class="particle p2"></div>
-        <div class="particle p3"></div>
-        <div class="particle p4"></div>
-        <div class="particle p5"></div>
-        <div class="particle p6"></div>
-        <div class="particle p7"></div>
-        <div class="particle p8"></div>
+<div class="handle-left"></div>
+<div class="handle-right"></div>
 
-        <div class="cup">
-            <div class="handle handle-left"></div>
-            <div class="handle handle-right"></div>
-            <div class="center-circle"></div>
-        </div>
-
-        <div class="stem"></div>
-        <div class="base1"></div>
-        <div class="base2"></div>
-
-    </div>
+<div class="star">★</div>
 
 </div>
 
-</body>
-</html>
-"""
+<div class="stem"></div>
+<div class="base-top"></div>
+<div class="base-bottom"></div>
 
-components.html(html, height=700, scrolling=False)
+</div>
+</div>
+
+""", unsafe_allow_html=True)
