@@ -32,20 +32,20 @@ body{
 }
 
 /* ===========================
-   2Dトロフィー（↑の画像風）
+   トロフィー本体
 =========================== */
 
 .trophy{
     position:relative;
     width:180px;
-    height:250px;
+    height:260px;
     animation:
         summon 1.6s cubic-bezier(.18,1.15,.3,1),
         float 3s ease-in-out infinite 1.6s,
         glow 2.5s ease-in-out infinite;
 }
 
-/* カップ（2Dイラスト風） */
+/* カップ（画像の形に寄せた2D） */
 .cup{
     position:relative;
     width:150px;
@@ -53,40 +53,74 @@ body{
     margin:auto;
     background:#FFD54A;
     border-radius:0 0 70px 70px;
-    border-top:8px solid #FFE9A0;
+    border-top:10px solid #FFE9A0;
 }
 
-/* 左右の取っ手（2D） */
-.left, .right{
+/* ===========================
+   持ち手（画像の形に寄せた楕円）
+=========================== */
+
+.handle{
     position:absolute;
-    top:18px;
-    width:42px;
-    height:42px;
-    border-radius:50%;
+    top:20px;
+    width:55px;
+    height:70px;
+    background:#FFD54A;
     border:10px solid #FFD54A;
-    background:none;
+    border-radius:50%;
 }
 
-.left{ left:-30px; border-right:none; }
-.right{ right:-30px; border-left:none; }
+.handle-left{
+    left:-40px;
+}
 
-/* 星（2D） */
-.star{
+.handle-right{
+    right:-40px;
+}
+
+/* ===========================
+   星（CSSで描く実際の星形）
+=========================== */
+
+.star-shape{
     position:absolute;
     left:50%;
-    top:25%;
-    transform:translate(-50%,-50%);
-    font-size:52px;
-    color:white;
-    text-shadow:
-        0 0 8px gold,
-        0 0 18px orange;
+    top:28%;
+    transform:translate(-50%,-50%) scale(1);
+    width:0;
+    height:0;
+
+    /* 星の形（CSSで描く） */
+    border-right: 30px solid transparent;
+    border-left: 30px solid transparent;
+    border-bottom: 45px solid white;
+
+    filter:
+        drop-shadow(0 0 8px gold)
+        drop-shadow(0 0 18px orange);
+
     animation:
         starPulse 1.8s ease-in-out infinite,
         starFloat 2.8s ease-in-out infinite;
 }
 
-/* 柱（2D） */
+.star-shape::before{
+    content:"";
+    position:absolute;
+    top:-28px;
+    left:-30px;
+    width:0;
+    height:0;
+
+    border-right: 30px solid transparent;
+    border-left: 30px solid transparent;
+    border-top: 45px solid white;
+}
+
+/* ===========================
+   柱・台座（2D）
+=========================== */
+
 .stem{
     width:34px;
     height:60px;
@@ -94,7 +128,6 @@ body{
     background:#FFD54A;
 }
 
-/* 台座（2D） */
 .base1{
     width:82px;
     height:24px;
@@ -115,7 +148,6 @@ body{
    トーテム演出（そのまま）
 =========================== */
 
-/* 光のリング */
 .ring{
     position:absolute;
     left:50%;
@@ -129,7 +161,6 @@ body{
     animation:ring 2.2s infinite;
 }
 
-/* パーティクル */
 .particle{
     position:absolute;
     width:8px;
@@ -148,7 +179,6 @@ body{
 .p7{left:-5px;top:120px;animation:fly7 2.4s infinite;}
 .p8{right:-5px;top:120px;animation:fly8 2.7s infinite;}
 
-/* 光のオーラ */
 .trophy::before{
     content:"";
     position:absolute;
@@ -167,7 +197,6 @@ body{
     z-index:-5;
 }
 
-/* 光の柱 */
 .trophy::after{
     content:"";
     position:absolute;
@@ -270,9 +299,9 @@ body{
         <div class="particle p8"></div>
 
         <div class="cup">
-            <div class="left"></div>
-            <div class="right"></div>
-            <div class="star">★</div>
+            <div class="handle handle-left"></div>
+            <div class="handle handle-right"></div>
+            <div class="star-shape"></div>
         </div>
 
         <div class="stem"></div>
