@@ -31,7 +31,7 @@ body{
     align-items:center;
 
     /* ✖ が奥に消えないようにする */
-    perspective: 800px;
+    perspective: 900px;
 }
 
 /* ===========================
@@ -42,6 +42,9 @@ body{
     position:relative;
     width:160px;
     height:160px;
+
+    /* ✖ を3Dのまま回転させるために必須 */
+    transform-style: preserve-3d;
 
     animation:
         spinIn 3.2s ease-out,
