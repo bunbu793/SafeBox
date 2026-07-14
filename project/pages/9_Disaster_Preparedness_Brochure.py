@@ -3,9 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="自治体別防災パンフレット", page_icon="📄")
 
 st.title("📄 自治体別防災パンフレット")
-st.write("ここでは防災パンフレットを配布しているリンクに移動します。"
-
-            "都道府県を選択すると、自治体の防災パンフレットページへ移動できます。")
+st.write("都道府県を選択すると、自治体の防災パンフレットページへ移動できます。")
 
 pref_links = {
     "北海道": "https://www.pref.hokkaido.lg.jp/ss/kurashi/bousai.html",
