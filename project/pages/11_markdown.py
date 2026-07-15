@@ -4,6 +4,20 @@ import random
 
 st.set_page_config(page_title="防災クイズ", page_icon="⛑️", layout="centered")
 
+#============================
+#ラジオボタン設定
+#============================
+st.markdown("""
+<style>
+/* ラジオボタンを横並びにする */
+div.stRadio > div {
+    display: flex;
+    flex-direction: row;
+    gap: 20px; /* ← ボタン同士の間隔 */
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ============================
 # 初期化
 # ============================
