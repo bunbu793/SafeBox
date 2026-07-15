@@ -5,7 +5,7 @@ import random
 st.set_page_config(page_title="防災クイズ", page_icon="⛑️", layout="centered")
 
 #============================
-#ラジオボタン設定（横並び）
+# ラジオボタン横並び
 #============================
 st.markdown("""
 <style>
@@ -25,7 +25,7 @@ if "score" not in st.session_state:
     st.session_state.score = 0
 
 if "combo" not in st.session_state:
-    st.session_state.combo = 0   # ← 連続正解数
+    st.session_state.combo = 0   # 連続正解数
 
 if "used" not in st.session_state:
     st.session_state.used = []
@@ -40,7 +40,7 @@ if "answered" not in st.session_state:
     st.session_state.answered = False
 
 # ============================
-# 防災クイズ（問題数増やせる）
+# 防災クイズ（問題増やせる）
 # ============================
 
 quiz_list = [
@@ -71,8 +71,6 @@ quiz_list = [
     {"q": "避難所でまず確認するべきことは？",
      "choices": ["受付で登録する", "スマホの充電場所", "友達を探す", "ゲームできる場所"],
      "a": "受付で登録する"},
-
-    # ここに追加すれば問題数増える
 ]
 
 # ============================
@@ -92,14 +90,14 @@ def get_rank(score):
 # ============================
 
 def get_national_rank(score):
-    avg = 12  # 全国平均（仮）
+    avg = 12
     if score >= avg + 10: return "全国トップ10%"
     if score >= avg + 5:  return "全国トップ25%"
     if score >= avg:      return "全国トップ50%"
     return "全国平均以下"
 
 # ============================
-# ポイント表示
+# スコア表示
 # ============================
 
 rank = get_rank(st.session_state.score)
@@ -117,10 +115,10 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.title("防災クイズ")
+st.title("防災クイズ（トーテム演出＋ランク＋全国順位）")
 
 # ============================
-# 新しい問題を選ぶ（重複なし）
+# 新しい問題を選ぶ
 # ============================
 
 def pick_new_quiz():
@@ -156,25 +154,70 @@ st.write("### " + quiz["q"])
 choice = st.radio("選択肢を選んでね", choices)
 
 # ============================
-# ◯✖演出（右側に移動）
+# トーテム演出（◯）
 # ============================
 
-circle_effect = """<html><body>
-<div style='position:absolute; top:120px; left:75%; transform:translateX(-50%);'>
-<div style='font-size:120px; color:#00ff88; text-shadow:0 0 20px #00ff88;'>○</div>
-</div>
-</body></html>
-"""
-
-cross_effect = """<html><body>
-<div style='position:absolute; top:120px; left:75%; transform:translateX(-50%);'>
-<div style='font-size:120px; color:#ff2b2b; text-shadow:0 0 20px #ff2b2b;'>×</div>
-</div>
-</body></html>
+circle_effect = """<!DOCTYPE html><html><head><style>
+body{margin:0;background:white;overflow:hidden;}
+.scene{
+    position:absolute;
+    top:120px;
+    left:75%;
+    transform:translateX(-50%);
+}
+.totem{
+    position:relative;width:160px;height:160px;
+    transform-style:preserve-3d;
+    animation:spinIn 3.2s ease-out,float 4s ease-in-out infinite 3.2s;
+}
+.core{
+    position:absolute;left:50%;top:50%;
+    transform:translate(-50%,-50%);
+    width:100px;height:100px;border-radius:50%;
+    border:12px solid #00ff88;
+    box-shadow:0 0 25px #00ff88,0 0 55px #ffee55;
+}
+</style>
+<div class="scene"><div class="totem"><div class="core"></div></div></div>
+</html>
 """
 
 # ============================
-# 判定ボタン（演出後は消える）
+# トーテム演出（✖）
+# ============================
+
+cross_effect = """<!DOCTYPE html><html><head><style>
+body{margin:0;background:white;overflow:hidden;}
+.scene{
+    position:absolute;
+    top:120px;
+    left:75%;
+    transform:translateX(-50%);
+}
+.totem{
+    position:relative;width:160px;height:160px;
+    transform-style:preserve-3d;
+    animation:spinIn 3.2s ease-out,float 4s ease-in-out infinite 3.2s;
+}
+.core{
+    position:absolute;left:50%;top:50%;
+    transform:translate(-50%,-50%);
+    width:170px;height:170px;
+}
+.core::before,.core::after{
+    content:"";position:absolute;left:50%;top:50%;
+    width:170px;height:28px;background:#ff2b2b;
+    transform-origin:center;
+}
+.core::before{transform:translate(-50%,-50%) rotate(45deg);}
+.core::after{transform:translate(-50%,-50%) rotate(-45deg);}
+</style>
+<div class="scene"><div class="totem"><div class="core"></div></div></div>
+</html>
+"""
+
+# ============================
+# 判定ボタン
 # ============================
 
 if not st.session_state.answered:
@@ -204,21 +247,21 @@ if not st.session_state.answered:
         else:
             st.error("不正解… -1pt")
             st.session_state.score -= 1
-            st.session_state.combo = 0  # コンボリセット
+            st.session_state.combo = 0
             components.html(cross_effect, height=300, scrolling=False)
 
 else:
     st.write("")
 
-#============================
-#スコア環境
-#============================
+# ============================
+# スコアがマイナスにならないように
+# ============================
 
 if st.session_state.score < 0:
     st.session_state.score = 0
 
 # ============================
-# 次の問題へ（演出後も必ず表示）
+# 次の問題へ
 # ============================
 
 if st.session_state.answered:
