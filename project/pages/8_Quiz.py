@@ -36,7 +36,7 @@ def get_rank(score):
     return RANKS[idx]
 
 # ============================
-# プロフィール読み込み
+# プロフィール読み込み／保存
 # ============================
 def load_profile(user_id):
     res = supabase.table("profiles").select("*").eq("user_id", user_id).execute()
@@ -60,7 +60,7 @@ def save_profile(profile):
     supabase.table("profiles").update(profile).eq("user_id", profile["user_id"]).execute()
 
 # ============================
-# 問題読み込み
+# 問題読み込み系
 # ============================
 def load_questions(rank):
     res = supabase.table("questions").select("*").execute()
@@ -142,11 +142,10 @@ body{margin:0;background:white;overflow:hidden;}
 """
 
 # ============================
-# Streamlit UI
+# Streamlit UI 基本設定
 # ============================
 st.set_page_config(page_title="防災クイズRPG", page_icon="⛑️", layout="centered")
 
-# ラジオ横並び
 st.markdown("""
 <style>
 div.stRadio > div {
@@ -179,7 +178,7 @@ if "index" not in st.session_state:
     st.session_state.index = 0
 
 # ============================
-# ホーム画面
+# ホーム
 # ============================
 st.title("防災クイズRPG")
 
@@ -211,56 +210,68 @@ elif mode == "練習":
     rank_name, unlocked, test_count, color = get_rank(st.session_state.score)
     questions = load_questions(rank_name)
 
-    if not st.session_state.current_questions:
-        st.session_state.current_questions = random.sample(questions, min(10, len(questions)))
-        st.session_state.index = 0
-        st.session_state.answered = False
+    if not questions:
+        st.info("まだ問題が登録されていません。Supabaseのquestionsテーブルに問題を追加してね。")
+    else:
+        if not st.session_state.current_questions:
+            st.session_state.current_questions = random.sample(questions, min(10, len(questions)))
+            st.session_state.index = 0
+            st.session_state.answered = False
 
-    q = st.session_state.current_questions[st.session_state.index]
+        if st.session_state.index >= len(st.session_state.current_questions):
+            st.session_state.current_questions = []
+            st.session_state.index = 0
+            st.session_state.answered = False
+            st.rerun()
 
-    st.subheader(f"問題 {st.session_state.index+1}")
-    st.write("### " + q["question"])
+        q = st.session_state.current_questions[st.session_state.index]
 
-    choice = st.radio("選択肢を選んでね", q["choices"])
+        st.subheader(f"問題 {st.session_state.index+1}/{len(st.session_state.current_questions)}")
+        st.write("### " + q["question"])
 
-    if not st.session_state.answered:
-        if st.button("送信"):
-            st.session_state.answered = True
+        choice = st.radio("選択肢を選んでね", q["choices"], key=f"practice_{st.session_state.index}")
 
-            if choice == q["answer"]:
-                st.success("正解！ +1pt")
-                st.session_state.score += 1
-                st.session_state.combo += 1
+        if not st.session_state.answered:
+            if st.button("送信", key=f"practice_send_{st.session_state.index}"):
+                st.session_state.answered = True
 
-                if st.session_state.combo > st.session_state.max_combo:
-                    st.session_state.max_combo = st.session_state.combo
-
-                components.html(circle_effect, height=700, scrolling=False)
-
-            else:
-                st.error("不正解…")
-                st.session_state.combo = 0
-
-                supabase.table("mistakes").insert({
+                # solved に記録
+                supabase.table("solved").upsert({
                     "user_id": st.session_state.user_id,
                     "question_id": q["id"]
                 }).execute()
 
-                components.html(cross_effect, height=700, scrolling=False)
+                if choice == q["answer"]:
+                    st.success("正解！ +1pt")
+                    st.session_state.score += 1
+                    st.session_state.combo += 1
 
-    if st.session_state.answered:
-        if st.button("次の問題へ"):
-            st.session_state.index += 1
-            st.session_state.answered = False
+                    if st.session_state.combo > st.session_state.max_combo:
+                        st.session_state.max_combo = st.session_state.combo
 
-            if st.session_state.index >= len(st.session_state.current_questions):
-                st.session_state.current_questions = []
-                st.session_state.index = 0
+                    components.html(circle_effect, height=700, scrolling=False)
 
-            profile["score"] = st.session_state.score
-            profile["max_combo"] = st.session_state.max_combo
-            save_profile(profile)
-            st.rerun()
+                else:
+                    st.error("不正解…")
+                    st.session_state.combo = 0
+
+                    supabase.table("mistakes").upsert({
+                        "user_id": st.session_state.user_id,
+                        "question_id": q["id"]
+                    }).execute()
+
+                    components.html(cross_effect, height=700, scrolling=False)
+
+        if st.session_state.answered:
+            if st.button("次の問題へ", key=f"practice_next_{st.session_state.index}"):
+                st.session_state.index += 1
+                st.session_state.answered = False
+
+                profile["score"] = st.session_state.score
+                profile["max_combo"] = st.session_state.max_combo
+                save_profile(profile)
+
+                st.rerun()
 
 # ============================
 # 復習モード
@@ -274,15 +285,15 @@ elif mode == "復習":
         q = random.choice(mistakes)
         st.subheader("復習問題")
         st.write("### " + q["question"])
-        choice = st.radio("選択肢を選んでね", q["choices"])
+        choice = st.radio("選択肢を選んでね", q["choices"], key=f"review_{q['id']}")
 
-        if st.button("送信"):
+        if st.button("送信", key=f"review_send_{q['id']}"):
             if choice == q["answer"]:
-                st.success("正解！")
+                st.success("正解！復習クリア！")
                 supabase.table("mistakes").delete().eq("user_id", st.session_state.user_id).eq("question_id", q["id"]).execute()
                 components.html(circle_effect, height=700, scrolling=False)
             else:
-                st.error("不正解…")
+                st.error("不正解…また復習しよう")
                 components.html(cross_effect, height=700, scrolling=False)
 
 # ============================
@@ -294,26 +305,42 @@ elif mode == "テスト":
     if rank_name == "LEGEND":
         solved = load_solved(st.session_state.user_id)
         if len(solved) < 100:
-            st.warning("LEGENDテストには100問必要です。まず練習で問題を解いてください。")
-        else:
-            questions = random.sample(solved, 100)
+            st.warning("LEGENDテストには100問必要です。まず練習モードで問題を解いてください。")
+            st.stop()
+        questions = random.sample(solved, 100)
     else:
-        questions = load_questions(rank_name)
-        questions = random.sample(questions, min(test_count, len(questions)))
+        questions_all = load_questions(rank_name)
+        if not questions_all:
+            st.info("まだ問題が登録されていません。Supabaseのquestionsテーブルに問題を追加してね。")
+            st.stop()
+        questions = random.sample(questions_all, min(test_count, len(questions_all)))
 
     if not st.session_state.current_questions:
         st.session_state.current_questions = questions
         st.session_state.index = 0
         st.session_state.answered = False
 
+    if st.session_state.index >= len(st.session_state.current_questions):
+        st.success("テスト終了！")
+        if rank_name == "LEGEND":
+            st.balloons()
+            st.success("LEGEND達成！称号：最高権力者")
+            profile["title"] = "最高権力者"
+            profile["legend_flag"] = True
+            save_profile(profile)
+        st.session_state.current_questions = []
+        st.session_state.index = 0
+        st.session_state.answered = False
+        st.stop()
+
     q = st.session_state.current_questions[st.session_state.index]
 
     st.subheader(f"テスト問題 {st.session_state.index+1}/{len(st.session_state.current_questions)}")
     st.write("### " + q["question"])
-    choice = st.radio("選択肢を選んでね", q["choices"])
+    choice = st.radio("選択肢を選んでね", q["choices"], key=f"test_{st.session_state.index}")
 
     if not st.session_state.answered:
-        if st.button("送信"):
+        if st.button("送信", key=f"test_send_{st.session_state.index}"):
             st.session_state.answered = True
 
             if choice == q["answer"]:
@@ -324,14 +351,13 @@ elif mode == "テスト":
                 components.html(cross_effect, height=700, scrolling=False)
 
     if st.session_state.answered:
-        if st.button("次の問題へ"):
+        if st.button("次の問題へ", key=f"test_next_{st.session_state.index}"):
             st.session_state.index += 1
             st.session_state.answered = False
+            st.rerun()
 
-            if st.session_state.index >= len(st.session_state.current_questions):
-                st.success("テスト終了！")
-
-                if rank_name == "LEGEND":
-                    st.balloons()
-                    st.success("LEGEND達成！称号：最高権力者")
-                    profile["title"] = "最高権力"
+# ============================
+# ホーム表示
+# ============================
+else:
+    st.write("モードを選んでね")
