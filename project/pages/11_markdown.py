@@ -98,15 +98,15 @@ else:
     choices = st.session_state.choices
 
 # ============================
-# ◯演出（問題の上に表示）
+# ◯演出（問題の右側に表示）
 # ============================
 
 circle_effect = """<!DOCTYPE html><html><head><style>
 body{margin:0;background:white;overflow:hidden;}
 .scene{
     position:absolute;
-    top:120px;        /* ← 問題の上に表示する位置 */
-    left:50%;
+    top:80px;          /* ← 問題の高さに合わせる */
+    left:70%;          /* ← 右側に移動（ここが重要） */
     transform:translateX(-50%);
 }
 .totem{
@@ -146,15 +146,15 @@ body{margin:0;background:white;overflow:hidden;}
 """
 
 # ============================
-# ✖演出（問題の上に表示）
+# ✖演出（問題の右側に表示）
 # ============================
 
 cross_effect = """<!DOCTYPE html><html><head><style>
 body{margin:0;background:white;overflow:hidden;}
 .scene{
     position:absolute;
-    top:120px;        /* ← 問題の上に表示する位置 */
-    left:50%;
+    top:80px;
+    left:70%;
     transform:translateX(-50%);
 }
 .totem{
@@ -199,7 +199,7 @@ body{margin:0;background:white;overflow:hidden;}
 """
 
 # ============================
-# 演出（問題の上に表示）
+# 演出（問題の右側に表示）
 # ============================
 
 if st.session_state.answered:
@@ -241,14 +241,7 @@ if not st.session_state.answered:
             st.session_state.score -= 1
 
 else:
-    st.write("") 
-
-#============================
-#スコア環境
-#===========================
-
-if st.session_state.score < 0:
-    st.session_state.score = 0
+    st.write("")  # ← 送信ボタンを完全に消す
 
 # ============================
 # 次の問題へ（演出後も必ず表示）
