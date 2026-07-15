@@ -14,7 +14,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ============================
-# ログイン画面（8_Quiz.py 内で完結）
+# ログイン画面（このファイルだけで完結）
 # ============================
 if "user_id" not in st.session_state:
     st.title("防災クイズRPG - ログイン")
@@ -31,26 +31,28 @@ if "user_id" not in st.session_state:
             st.rerun()
 
     # --------------------------
-    # アカウント登録
+    # アカウント登録（ID + パスワード）
     # --------------------------
     elif mode == "アカウント登録":
-        new_code = st.text_input("新しい個人コードを入力してください（例：kan123）")
+        new_code = st.text_input("新しい個人コード（ID）を入力してください")
+        new_pass = st.text_input("パスワードを入力してください", type="password")
 
         if st.button("登録"):
-            if not new_code:
-                st.error("コードを入力してください")
+            if not new_code or not new_pass:
+                st.error("ID とパスワードを入力してください")
                 st.stop()
 
-            # 重複チェック
+            # ID 重複チェック
             res = supabase.table("profiles").select("*").eq("user_id", new_code).execute()
             if res.data:
-                st.error("このコードは既に使われています")
+                st.error("このIDは既に使われています")
                 st.stop()
 
             # ゲストデータ引き継ぎ
             if st.session_state.get("is_guest", False):
                 profile = {
                     "user_id": new_code,
+                    "password": new_pass,
                     "score": st.session_state.get("score", 0),
                     "max_combo": st.session_state.get("max_combo", 0),
                     "rank": st.session_state.get("rank", "F"),
@@ -60,6 +62,7 @@ if "user_id" not in st.session_state:
             else:
                 profile = {
                     "user_id": new_code,
+                    "password": new_pass,
                     "score": 0,
                     "max_combo": 0,
                     "rank": "F",
@@ -75,16 +78,23 @@ if "user_id" not in st.session_state:
             st.rerun()
 
     # --------------------------
-    # ログイン
+    # ログイン（ID + パスワード）
     # --------------------------
     elif mode == "ログイン":
-        code = st.text_input("個人コードを入力してください")
+        code = st.text_input("個人コード（ID）を入力してください")
+        pw = st.text_input("パスワードを入力してください", type="password")
 
         if st.button("ログイン"):
             res = supabase.table("profiles").select("*").eq("user_id", code).execute()
 
             if not res.data:
-                st.error("このコードは存在しません")
+                st.error("このIDは存在しません")
+                st.stop()
+
+            user = res.data[0]
+
+            if user["password"] != pw:
+                st.error("パスワードが違います")
                 st.stop()
 
             st.session_state["user_id"] = code
@@ -155,6 +165,7 @@ def load_profile(user_id):
 
     profile = {
         "user_id": user_id,
+        "password": "",
         "score": 0,
         "max_combo": 0,
         "rank": "F",
@@ -243,6 +254,7 @@ if mode == "ステータス":
 
         save_profile({
             "user_id": user_id,
+            "password": profile.get("password", ""),
             "score": st.session_state.score,
             "max_combo": st.session_state.max_combo,
             "rank": st.session_state.rank,
@@ -310,6 +322,7 @@ elif mode == "練習":
 
                 save_profile({
                     "user_id": user_id,
+                    "password": profile.get("password", ""),
                     "score": st.session_state.score,
                     "max_combo": st.session_state.max_combo,
                     "rank": st.session_state.rank,
@@ -375,6 +388,7 @@ elif mode == "テスト":
 
             save_profile({
                 "user_id": user_id,
+                "password": profile.get("password", ""),
                 "score": st.session_state.score,
                 "max_combo": st.session_state.max_combo,
                 "rank": st.session_state.rank,
