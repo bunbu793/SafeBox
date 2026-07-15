@@ -109,14 +109,14 @@ body{margin:0;background:white;overflow:hidden;}
 .totem{position:relative;width:160px;height:160px;transform-style:preserve-3d;animation:spinIn 3.2s ease-out,float 4s ease-in-out infinite 3.2s,vanish 1.6s ease-in-out 7.0s forwards;}
 .core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100px;height:100px;border-radius:50%;border:12px solid #00ff88;background:transparent;box-shadow:0 0 25px #00ff88,0 0 55px #ffee55,0 0 90px rgba(255,255,120,.9);animation:pulse 2.4s ease-in-out infinite;}
 .particle{position:absolute;width:14px;height:14px;border-radius:50%;animation:spread 2.2s ease-out infinite;}
-.green{background:#00ff88;box-shadow:0 0 25px #00ff88;}
-.yellow{background:#ffee55;box-shadow:0 0 25px #ffee55;}
+.green{background:#00ff88;}
+.yellow{background:#ffee55;}
 .p1,.p2,.p3,.p4,.p5,.p6{left:50%;top:50%;}
 @keyframes spinIn{0%{transform:scale(0) rotateY(0deg);opacity:0;}40%{transform:scale(0.7) rotateY(180deg);opacity:1;}100%{transform:scale(1) rotateY(720deg);opacity:1;}}
 @keyframes float{0%{transform:translateY(0);}50%{transform:translateY(-16px);}100%{transform:translateY(0);}}
 @keyframes pulse{0%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.35);}100%{transform:translate(-50%,-50%) scale(1);}}
 @keyframes spread{0%{transform:translate(-50%,-50%) scale(0.3);opacity:1;}100%{transform:translate(var(--x), var(--y)) scale(1.8);opacity:0;}}
-@keyframes vanish{0%{transform:scale(1) translateY(0);opacity:1;filter:blur(0px);}100%{transform:scale(0.2) translateY(160px);opacity:0;filter:blur(6px);}}
+@keyframes vanish{0%{transform:scale(1) translateY(0);opacity:1;}100%{transform:scale(0.2) translateY(160px);opacity:0;}}
 </style>
 <div class="scene"><div class="totem">
 <div class="particle green p1" style="--x:-200px; --y:-300px;"></div>
@@ -148,7 +148,7 @@ body{margin:0;background:white;overflow:hidden;}
 @keyframes spinIn{0%{transform:scale(0) rotateY(0deg);opacity:0;}40%{transform:scale(0.7) rotateY(180deg);opacity:1;}100%{transform:scale(1) rotateY(720deg);opacity:1;}}
 @keyframes float{0%{transform:translateY(0);}50%{transform:translateY(-16px);}100%{transform:translateY(0);}}
 @keyframes spread{0%{transform:translate(-50%,-50%) scale(0.3);opacity:1;}100%{transform:translate(var(--x), var(--y)) scale(1.8);opacity:0;}}
-@keyframes vanish{0%{transform:scale(1) translateY(0);opacity:1;filter:blur(0px);}100%{transform:scale(0.2) translateY(160px);opacity:0;filter:blur(6px);}}
+@keyframes vanish{0%{transform:scale(1) translateY(0);opacity:1;}100%{transform:scale(0.2) translateY(160px);opacity:0;}}
 </style>
 <div class="scene"><div class="totem">
 <div class="particle orange p1" style="--x:-200px; --y:-300px;"></div>
@@ -161,27 +161,26 @@ body{margin:0;background:white;overflow:hidden;}
 """
 
 # ============================
-# 判定ボタン
+# 判定ボタン（演出後は消える）
 # ============================
 
-if st.button("送信") and not st.session_state.answered:
-    st.session_state.answered = True
+if not st.session_state.answered:
+    send = st.button("送信")
 
-    if choice == quiz["a"]:
-        st.success("正解！ +1pt")
-        st.session_state.score += 1
-        components.html(circle_effect, height=700, scrolling=False)
-    else:
-        st.error("不正解… -1pt")
-        st.session_state.score -= 1
-        components.html(cross_effect, height=700, scrolling=False)
+    if send:
+        st.session_state.answered = True
 
-#============================
-#スコア環境
-#===========================
+        if choice == quiz["a"]:
+            st.success("正解！ +1pt")
+            st.session_state.score += 1
+            components.html(circle_effect, height=700, scrolling=False)
+        else:
+            st.error("不正解… -1pt")
+            st.session_state.score -= 1
+            components.html(cross_effect, height=700, scrolling=False)
 
-if st.session_state.score < 0:
-    st.session_state.score = 0
+else:
+    st.write("")  # ← 送信ボタンを完全に消す
 
 # ============================
 # 次の問題へ（演出後も必ず表示）
