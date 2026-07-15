@@ -115,7 +115,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.title("防災クイズ（トーテム演出＋ランク＋全国順位）")
+st.title("防災クイズ")
 
 # ============================
 # 新しい問題を選ぶ
