@@ -524,3 +524,12 @@ elif mode == "テスト":
 # ============================
 else:
     st.write("モードを選んでね")
+
+    # ============================
+    # ログアウトボタン
+    # ============================
+    if st.button("ログアウト"):
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        st.success("ログアウトしました")
+        st.rerun()
