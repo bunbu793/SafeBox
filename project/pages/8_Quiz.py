@@ -1,5 +1,6 @@
 import os
 import random
+import json
 import streamlit as st
 import streamlit.components.v1 as components
 from supabase import create_client, Client
@@ -36,6 +37,17 @@ def get_rank(score):
     return RANKS[idx]
 
 # ============================
+# JSON → 配列変換（侃専用）
+# ============================
+def fix_choices(q):
+    if isinstance(q["choices"], str):
+        try:
+            q["choices"] = json.loads(q["choices"])
+        except:
+            pass
+    return q
+
+# ============================
 # プロフィール読み込み／保存
 # ============================
 def load_profile(user_id):
@@ -64,7 +76,8 @@ def save_profile(profile):
 # ============================
 def load_questions(rank):
     res = supabase.table("question").select("*").execute()
-    all_q = res.data
+    all_q = [fix_choices(q) for q in res.data]
+
     order = ["F","E","D","C","B","A","A+","AA","S","SS","SSS","LEGEND"]
     return [q for q in all_q if order.index(q["rank_required"]) <= order.index(rank)]
 
@@ -74,7 +87,7 @@ def load_mistakes(user_id):
     if not ids:
         return []
     q = supabase.table("question").select("*").in_("id", ids).execute()
-    return q.data
+    return [fix_choices(item) for item in q.data]
 
 def load_solved(user_id):
     res = supabase.table("solved").select("*").eq("user_id", user_id).execute()
@@ -82,10 +95,10 @@ def load_solved(user_id):
     if not ids:
         return []
     q = supabase.table("question").select("*").in_("id", ids).execute()
-    return q.data
+    return [fix_choices(item) for item in q.data]
 
 # ============================
-# トーテム演出（侃の完全一致版）
+# トーテム演出（完全版）
 # ============================
 circle_effect = """<!DOCTYPE html><html><head><style>
 body{margin:0;background:white;overflow:hidden;}
@@ -98,8 +111,7 @@ body{margin:0;background:white;overflow:hidden;}
 .p1,.p2,.p3,.p4,.p5,.p6{left:50%;top:50%;}
 @keyframes spinIn{0%{transform:scale(0) rotateY(0deg);opacity:0;}40%{transform:scale(0.7) rotateY(180deg);opacity:1;}100%{transform:scale(1) rotateY(720deg);opacity:1;}}
 @keyframes float{0%{transform:translateY(0);}50%{transform:translateY(-16px);}100%{transform:translateY(0);}}
-@keyframes pulse{0%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.35);}100%{transform:translate(-50%,-50%) scale(1);}
-}
+@keyframes pulse{0%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.35);}100%{transform:translate(-50%,-50%) scale(1);}}
 @keyframes spread{0%{transform:translate(-50%,-50%) scale(0.3);opacity:1;}100%{transform:translate(var(--x), var(--y)) scale(1.8);opacity:0;}}
 @keyframes vanish{0%{transform:scale(1) translateY(0);opacity:1;}100%{transform:scale(0.2) translateY(160px);opacity:0;}}
 </style>
@@ -145,16 +157,6 @@ body{margin:0;background:white;overflow:hidden;}
 # Streamlit UI 基本設定
 # ============================
 st.set_page_config(page_title="防災クイズRPG", page_icon="⛑️", layout="centered")
-
-st.markdown("""
-<style>
-div.stRadio > div {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-}
-</style>
-""", unsafe_allow_html=True)
 
 # ============================
 # セッション初期化
@@ -211,7 +213,7 @@ elif mode == "練習":
     questions = load_questions(rank_name)
 
     if not questions:
-        st.info("まだ問題が登録されていません。Supabaseのquestionsテーブルに問題を追加してね。")
+        st.info("まだ問題が登録されていません。Supabaseのquestionテーブルに問題を追加してね。")
     else:
         if not st.session_state.current_questions:
             st.session_state.current_questions = random.sample(questions, min(10, len(questions)))
@@ -235,7 +237,6 @@ elif mode == "練習":
             if st.button("送信", key=f"practice_send_{st.session_state.index}"):
                 st.session_state.answered = True
 
-                # solved に記録
                 supabase.table("solved").upsert({
                     "user_id": st.session_state.user_id,
                     "question_id": q["id"]
@@ -311,7 +312,7 @@ elif mode == "テスト":
     else:
         questions_all = load_questions(rank_name)
         if not questions_all:
-            st.info("まだ問題が登録されていません。Supabaseのquestionsテーブルに問題を追加してね。")
+            st.info("まだ問題が登録されていません。Supabaseのquestionテーブルに問題を追加してね。")
             st.stop()
         questions = random.sample(questions_all, min(test_count, len(questions_all)))
 
@@ -322,12 +323,14 @@ elif mode == "テスト":
 
     if st.session_state.index >= len(st.session_state.current_questions):
         st.success("テスト終了！")
+
         if rank_name == "LEGEND":
             st.balloons()
             st.success("LEGEND達成！称号：最高権力者")
             profile["title"] = "最高権力者"
             profile["legend_flag"] = True
             save_profile(profile)
+
         st.session_state.current_questions = []
         st.session_state.index = 0
         st.session_state.answered = False
@@ -337,6 +340,7 @@ elif mode == "テスト":
 
     st.subheader(f"テスト問題 {st.session_state.index+1}/{len(st.session_state.current_questions)}")
     st.write("### " + q["question"])
+
     choice = st.radio("選択肢を選んでね", q["choices"], key=f"test_{st.session_state.index}")
 
     if not st.session_state.answered:
