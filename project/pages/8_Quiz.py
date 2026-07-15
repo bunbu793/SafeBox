@@ -37,10 +37,10 @@ def get_rank(score):
     return RANKS[idx]
 
 # ============================
-# JSON → 配列変換（侃専用）
+# JSON → 配列変換（choices用）
 # ============================
 def fix_choices(q):
-    if isinstance(q["choices"], str):
+    if isinstance(q.get("choices"), str):
         try:
             q["choices"] = json.loads(q["choices"])
         except:
@@ -75,7 +75,7 @@ def save_profile(profile):
 # 問題読み込み系
 # ============================
 def load_questions(rank):
-    res = supabase.table("question").select("*").execute()
+    res = supabase.table("questions").select("*").execute()
     all_q = [fix_choices(q) for q in res.data]
 
     order = ["F","E","D","C","B","A","A+","AA","S","SS","SSS","LEGEND"]
@@ -86,7 +86,7 @@ def load_mistakes(user_id):
     ids = [m["question_id"] for m in res.data]
     if not ids:
         return []
-    q = supabase.table("question").select("*").in_("id", ids).execute()
+    q = supabase.table("questions").select("*").in_("id", ids).execute()
     return [fix_choices(item) for item in q.data]
 
 def load_solved(user_id):
@@ -94,11 +94,11 @@ def load_solved(user_id):
     ids = [s["question_id"] for s in res.data]
     if not ids:
         return []
-    q = supabase.table("question").select("*").in_("id", ids).execute()
+    q = supabase.table("questions").select("*").in_("id", ids).execute()
     return [fix_choices(item) for item in q.data]
 
 # ============================
-# トーテム演出（完全版）
+# トーテム演出（HTML）
 # ============================
 circle_effect = """<!DOCTYPE html><html><head><style>
 body{margin:0;background:white;overflow:hidden;}
@@ -158,6 +158,16 @@ body{margin:0;background:white;overflow:hidden;}
 # ============================
 st.set_page_config(page_title="防災クイズRPG", page_icon="⛑️", layout="centered")
 
+st.markdown("""
+<style>
+div.stRadio > div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ============================
 # セッション初期化
 # ============================
@@ -213,7 +223,7 @@ elif mode == "練習":
     questions = load_questions(rank_name)
 
     if not questions:
-        st.info("まだ問題が登録されていません。Supabaseのquestionテーブルに問題を追加してね。")
+        st.info("まだ問題が登録されていません。Supabaseのquestionsテーブルに問題を追加してね。")
     else:
         if not st.session_state.current_questions:
             st.session_state.current_questions = random.sample(questions, min(10, len(questions)))
@@ -312,7 +322,7 @@ elif mode == "テスト":
     else:
         questions_all = load_questions(rank_name)
         if not questions_all:
-            st.info("まだ問題が登録されていません。Supabaseのquestionテーブルに問題を追加してね。")
+            st.info("まだ問題が登録されていません。Supabaseのquestionsテーブルに問題を追加してね。")
             st.stop()
         questions = random.sample(questions_all, min(test_count, len(questions_all)))
 
