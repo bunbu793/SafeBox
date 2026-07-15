@@ -17,7 +17,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # ログイン画面（このファイルだけで完結）
 # ============================
 if "user_id" not in st.session_state:
-    st.title("防災クイズRPG - ログイン")
+    st.title("防災クイズ - ログイン")
 
     mode = st.radio("選択してください", ["ゲストとしてプレイ", "アカウント登録", "ログイン"])
 
@@ -222,7 +222,7 @@ st.session_state.legend_flag = profile["legend_flag"]
 # ============================
 # ホーム
 # ============================
-st.title("防災クイズRPG")
+st.title("防災クイズ")
 
 mode = st.selectbox("モードを選んでください", ["ホーム", "練習", "復習", "テスト", "ステータス"])
 
@@ -246,24 +246,6 @@ if mode == "ステータス":
         <b>称号：</b> {title}
     </div>
     """, unsafe_allow_html=True)
-
-    if st.button("レジェンドになる（管理者用）"):
-        st.session_state.rank = "LEGEND"
-        st.session_state.title = "最高権力者"
-        st.session_state.legend_flag = True
-
-        save_profile({
-            "user_id": user_id,
-            "password": profile.get("password", ""),
-            "score": st.session_state.score,
-            "max_combo": st.session_state.max_combo,
-            "rank": st.session_state.rank,
-            "title": st.session_state.title,
-            "legend_flag": st.session_state.legend_flag
-        })
-
-        st.balloons()
-        st.success("レジェンド達成！称号：最高権力者")
 
 # ============================
 # 練習モード
