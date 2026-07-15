@@ -29,9 +29,9 @@ body{
     display:flex;
     justify-content:center;
     align-items:center;
+    perspective:900px;
 
-    /* 3D回転が見えるようにする */
-    perspective: 900px;
+    transform: translateY(-140px); /* ← ここで調整できる */
 }
 
 /* ===========================
