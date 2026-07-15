@@ -1,18 +1,74 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import random
 
 st.set_page_config(page_title="防災クイズ", page_icon="⛑️", layout="centered")
 
-st.title("防災クイズ：正解すると◯、間違えると✖が出るよ")
-
-# 防災クイズ（例）
-question = "地震が起きたとき、まず最初にするべき行動は？"
-answer = "身を守る"
-
-user_answer = st.text_input("答えを入力してね")
+st.title("防災クイズ（mikan風カード形式）")
 
 # ============================
-# ◯ 演出（侃の緑の輪っか）
+# 防災クイズ（好きなだけ増やせる）
+# ============================
+
+quiz_list = [
+    {
+        "q": "地震が起きたとき、まず最初にするべき行動は？",
+        "choices": ["身を守る", "外に走る", "窓を開ける", "スマホを見る"],
+        "a": "身を守る"
+    },
+    {
+        "q": "津波から避難するとき、まず向かうべき場所は？",
+        "choices": ["高い場所", "海の様子を見る", "家に戻る", "車で海沿いへ行く"],
+        "a": "高い場所"
+    },
+    {
+        "q": "火災のとき煙を吸わないための姿勢は？",
+        "choices": ["低い姿勢", "背伸びする", "走る", "ジャンプする"],
+        "a": "低い姿勢"
+    },
+    {
+        "q": "台風のとき危険な場所は？",
+        "choices": ["川の近く", "家の中", "高台", "避難所"],
+        "a": "川の近く"
+    },
+    {
+        "q": "非常用持ち出し袋に入れるべきものは？",
+        "choices": ["水・食料", "ゲーム機", "大きい家具", "観葉植物"],
+        "a": "水・食料"
+    },
+    {
+        "q": "地震のときエレベーターに乗っていたらどうする？",
+        "choices": ["全階のボタンを押す", "飛び降りる", "叫ぶ", "スマホで動画を撮る"],
+        "a": "全階のボタンを押す"
+    },
+    {
+        "q": "避難所でまず確認するべきことは？",
+        "choices": ["受付で登録する", "スマホの充電場所", "友達を探す", "ゲームできる場所"],
+        "a": "受付で登録する"
+    }
+]
+
+# ============================
+# ランダムに問題を選ぶ
+# ============================
+
+quiz = random.choice(quiz_list)
+
+# 選択肢をランダムにシャッフル
+choices = quiz["choices"].copy()
+random.shuffle(choices)
+
+st.subheader("問題")
+st.write("### " + quiz["q"])
+
+# ============================
+# 4択ボタン
+# ============================
+
+choice = st.radio("選択肢を選んでね", choices)
+
+# ============================
+# ◯演出（CSS全部入り）
 # ============================
 
 circle_effect = """
@@ -90,7 +146,7 @@ body{margin:0;background:white;overflow:hidden;}
 """
 
 # ============================
-# ✖ 演出（侃の170px巨大バツ）
+# ✖演出（170px巨大バツ＋CSS全部入り）
 # ============================
 
 cross_effect = """
@@ -123,8 +179,8 @@ body{margin:0;background:white;overflow:hidden;}
 .core::after{
     content:"";
     position:absolute;left:50%;top:50%;
-    width:170px;     /* ← 長さ */
-    height:28px;     /* ← 太さ */
+    width:170px;
+    height:28px;
     background:#ff2b2b;
     box-shadow:
         0 0 25px #ff2b2b,
@@ -188,9 +244,11 @@ body{margin:0;background:white;overflow:hidden;}
 # ============================
 
 if st.button("判定"):
-    if user_answer == answer:
+    if choice == quiz["a"]:
         st.success("正解！")
         components.html(circle_effect, height=700, scrolling=False)
     else:
         st.error("不正解…")
         components.html(cross_effect, height=700, scrolling=False)
+
+    st.rerun()
