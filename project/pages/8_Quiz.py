@@ -268,9 +268,8 @@ if mode == "ステータス":
     title = st.session_state.title or ("最高権力者" if st.session_state.legend_flag else "なし")
     rank_color = RANK_COLORS[current_rank]
 
-    st.markdown(f"""
-    <style>
-    .cyber-card {{
+    html = f"""
+    <div style="
         padding: 30px;
         border-radius: 18px;
         background: radial-gradient(circle at top left, #0f0f0f, #000000 60%);
@@ -280,60 +279,38 @@ if mode == "ステータス":
         color: #0affff;
         position: relative;
         overflow: hidden;
-    }}
+        width: 100%;
+    ">
 
-    .cyber-grid {{
-        position:absolute;
-        top:0; left:0;
-        width:100%; height:100%;
-        background-image: linear-gradient(#0a0a0a 1px, transparent 1px),
-                          linear-gradient(90deg, #0a0a0a 1px, transparent 1px);
-        background-size: 22px 22px;
-        opacity:0.25;
-        z-index:0;
-    }}
+        <div style="
+            position:absolute;
+            top:0; left:0;
+            width:100%; height:100%;
+            background-image: linear-gradient(#0a0a0a 1px, transparent 1px),
+                              linear-gradient(90deg, #0a0a0a 1px, transparent 1px);
+            background-size: 22px 22px;
+            opacity:0.25;
+            z-index:0;
+        "></div>
 
-    .cyber-title {{
-        color:{rank_color};
-        text-shadow: 0 0 12px {rank_color};
-        margin-bottom: 20px;
-        position:relative;
-        z-index:2;
-    }}
+        <h2 style="
+            color:{rank_color};
+            text-shadow: 0 0 12px {rank_color};
+            margin-bottom: 20px;
+            position:relative;
+            z-index:2;
+        ">
+            ⚡ CYBER STATUS MODULE ⚡
+        </h2>
 
-    .cyber-content {{
-        font-size:18px;
-        line-height:1.9;
-        position:relative;
-        z-index:2;
-    }}
-
-    .cyber-line {{
-        position:absolute;
-        bottom:10px; left:10px;
-        width:90%;
-        height:2px;
-        background:linear-gradient(90deg, transparent, {rank_color}, transparent);
-        opacity:0.7;
-        z-index:2;
-    }}
-    </style>
-
-    <div class="cyber-card">
-        <div class="cyber-grid"></div>
-
-        <h2 class="cyber-title">⚡ CYBER STATUS MODULE ⚡</h2>
-
-        <div class="cyber-content">
+        <div style="font-size:18px; line-height:1.9; position:relative; z-index:2;">
             <b style="color:#00eaff;">▶ RANK :</b>
             <span style="color:{rank_color}; font-size:24px; text-shadow:0 0 10px {rank_color};">
                 <b>{current_rank}</b>
             </span><br>
 
             <b style="color:#00eaff;">▶ SCORE :</b> {st.session_state.score} pt<br>
-
             <b style="color:#00eaff;">▶ MAX COMBO :</b> {st.session_state.max_combo} 回<br>
-
             <b style="color:#00eaff;">▶ TEST SIZE :</b> {test_count} 問<br>
 
             <b style="color:#00eaff;">▶ TITLE :</b>
@@ -342,9 +319,20 @@ if mode == "ステータス":
             </span>
         </div>
 
-        <div class="cyber-line"></div>
+        <div style="
+            position:absolute;
+            bottom:10px; left:10px;
+            width:90%;
+            height:2px;
+            background:linear-gradient(90deg, transparent, {rank_color}, transparent);
+            opacity:0.7;
+            z-index:2;
+        "></div>
+
     </div>
-    """, unsafe_allow_html=True)
+    """
+
+    components.html(html, height=400, scrolling=False)
 
     # ランク進行バー
     rank_index = RANK_ORDER.index(current_rank)
@@ -355,7 +343,6 @@ if mode == "ステータス":
     """, unsafe_allow_html=True)
 
     st.progress(progress)
-
 
 # ============================
 # 練習モード
