@@ -16,7 +16,7 @@ if not family_code:
     st.error("ログイン情報がありません")
     st.stop()
 
-st.write(f"ログイン中：{family_code}")
+st.info(f"ログイン中：{family_code}")
 
 # 家族一覧取得
 members = supabase.table("family_members").select("*").eq("family_code", family_code).execute()
