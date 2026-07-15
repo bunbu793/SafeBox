@@ -235,6 +235,16 @@ if mode == "ステータス":
     </div>
     """, unsafe_allow_html=True)
 
+    # 管理者用：即レジェンド化ボタン
+if st.button("レジェンドになる（管理者用）"):
+    profile["rank"] = "LEGEND"
+    profile["title"] = "最高権力者"
+    profile["legend_flag"] = True
+    save_profile(profile)
+
+    st.balloons()
+    st.success("レジェンド達成！称号：最高権力者")
+
 # ============================
 # 練習モード
 # ============================
