@@ -64,7 +64,7 @@ cross_effect = """
 <head>
 <style>
 body{margin:0;background:white;overflow:hidden;}
-.scene{width:100vw;height:100vh;display:flex;justify-content:center;align-items:center;perspective:900px;transform: translateY(-140px); /* ← ここで調整できる */}
+.scene{width:100vw;height:100vh;display:flex;justify-content:center;align-items:center;perspective:800px;transform: translateY(-170px); /* ← ここで調整できる */}
 .totem{position:relative;width:160px;height:160px;transform-style:preserve-3d;
 animation:spinIn 3.2s ease-out,float 4s ease-in-out infinite 3.2s,vanish 1.6s ease-in-out 7.0s forwards;}
 .core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
