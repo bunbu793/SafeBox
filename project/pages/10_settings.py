@@ -9,26 +9,57 @@ supabase = create_client(url, key)
 st.title("SafeBox Manager - Settings")
 
 # ============================
+# ログインチェック
+# ============================
+if "user_id" not in st.session_state:
+    st.warning("ログインしてください")
+    st.stop()
+
+user_id = st.session_state["user_id"]
+
+# ============================
+# Supabase から現在の設定を読み込む
+# ============================
+profile = supabase.table("profiles").select("*").eq("user_id", user_id).execute().data[0]
+
+current_language = profile.get("language", "日本語")
+current_theme = profile.get("theme", "Light")
+
+# ============================
 # 言語設定（日本語 / 英語）
 # ============================
 st.subheader("言語設定")
 
-language = st.selectbox("Language / 言語を選択", ["日本語", "English"])
+language = st.selectbox(
+    "Language / 言語を選択",
+    ["日本語", "English"],
+    index=["日本語", "English"].index(current_language)
+)
 
-st.session_state["language"] = language
-
-st.success(f"現在の言語: {language}")
+if st.button("言語を保存"):
+    supabase.table("profiles").update({"language": language}).eq("user_id", user_id).execute()
+    st.session_state["language"] = language
+    st.success("言語設定を保存しました")
 
 # ============================
 # テーマ設定（ライト / ダーク / サイバー）
 # ============================
 st.subheader("テーマ設定")
 
-theme = st.selectbox("テーマを選択", ["Light", "Dark", "Cyber"])
+theme = st.selectbox(
+    "テーマを選択",
+    ["Light", "Dark", "Cyber"],
+    index=["Light", "Dark", "Cyber"].index(current_theme)
+)
 
-st.session_state["theme"] = theme
+if st.button("テーマを保存"):
+    supabase.table("profiles").update({"theme": theme}).eq("user_id", user_id).execute()
+    st.session_state["theme"] = theme
+    st.success("テーマ設定を保存しました")
 
-# テーマCSS
+# ============================
+# テーマCSS（即時反映）
+# ============================
 if theme == "Dark":
     st.markdown("""
     <style>
@@ -47,8 +78,6 @@ elif theme == "Cyber":
     </style>
     """, unsafe_allow_html=True)
 
-st.success(f"現在のテーマ: {theme}")
-
 # ============================
 # 家族の名前登録
 # ============================
@@ -60,7 +89,7 @@ if "family_code" not in st.session_state:
 
 family_code = st.session_state["family_code"]
 
-new_name = st.text_input("追加する家族の名前（例：侃、母、父、兄、姉）")
+new_name = st.text_input("追加する家族の名前（例:太郎、花子）")
 
 color = st.selectbox("カラータグを選択", ["blue", "green", "red", "yellow", "pink", "purple"])
 
@@ -112,7 +141,7 @@ if members.data:
                 <div style="display:flex; align-items:center;">
                     <div style="
                         width:14px; height:14px;
-                        background:{m['color']};
+                        background:{m.get('color', 'blue')};
                         border-radius:50%;
                         margin-right:8px;
                     "></div>
