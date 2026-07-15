@@ -15,18 +15,24 @@ if "user_id" not in st.session_state:
     st.warning("ログインしてください")
     st.stop()
 
+if "family_code" not in st.session_state:
+    st.warning("ログインしてください（family_code がありません）")
+    st.stop()
+
 user_id = st.session_state["user_id"]
+family_code = st.session_state["family_code"]
 
 # ============================
 # Supabase から現在の設定を読み込む
 # ============================
-profile = supabase.table("profiles").select("*").eq("user_id", user_id).execute().data[0]
+profile_res = supabase.table("profiles").select("*").eq("user_id", user_id).execute()
+profile = profile_res.data[0]
 
 current_language = profile.get("language", "日本語")
 current_theme = profile.get("theme", "Light")
 
 # ============================
-# 言語設定（日本語 / 英語）
+# 言語設定
 # ============================
 st.subheader("言語設定")
 
@@ -42,7 +48,7 @@ if st.button("言語を保存"):
     st.success("言語設定を保存しました")
 
 # ============================
-# テーマ設定（ライト / ダーク / サイバー）
+# テーマ設定
 # ============================
 st.subheader("テーマ設定")
 
@@ -82,12 +88,6 @@ elif theme == "Cyber":
 # 家族の名前登録
 # ============================
 st.subheader("家族の名前を追加")
-
-if "family_code" not in st.session_state:
-    st.warning("ログインしてください")
-    st.stop()
-
-family_code = st.session_state["family_code"]
 
 new_name = st.text_input("追加する家族の名前（例:太郎、花子）")
 
