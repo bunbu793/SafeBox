@@ -4,6 +4,19 @@ import random
 st.set_page_config(page_title="防災クイズ", page_icon="📝")
 
 # -------------------------
+# ラジオボタン横並びCSS
+# -------------------------
+st.markdown("""
+<style>
+div.stRadio > div {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -------------------------
 # セッション初期化
 # -------------------------
 if "questions" not in st.session_state:
@@ -16,7 +29,7 @@ if "last_correct" not in st.session_state:
     st.session_state.last_correct = None
 
 # -------------------------
-# CSS（○×＋新トロフィー＋D＋Eアニメーション）
+# CSS（○×＋新トロフィー＋右側配置）
 # -------------------------
 st.markdown("""
 <style>
@@ -33,11 +46,11 @@ st.markdown("""
     box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
 }
 
-/* ○ × */
+/* ○ × を右側へ移動 */
 .mark {
     position: absolute;
-    top: -20px;
-    right: -20px;
+    top: 20px;
+    right: -150px;   /* ← 右側へ移動 */
     font-size: 70px;
     font-weight: bold;
     animation: pop 0.4s ease-out forwards;
@@ -51,14 +64,13 @@ st.markdown("""
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* -------------------------
-   新トロフィー（CSSで描く）
-------------------------- */
+/* トロフィーを右側へ移動 */
 .trophy {
     width: 120px;
     height: 160px;
-    margin: auto;
-    position: relative;
+    position: absolute;
+    top: 100px;
+    right: -180px;   /* ← 右側へ移動 */
 
     animation: zoomIn 0.8s ease-out forwards,
                explode 0.8s ease-out 0.8s forwards,
@@ -101,44 +113,24 @@ st.markdown("""
     margin-top: 10px;
 }
 
-/* -------------------------
-   D：ズームイン（奥→手前）
-------------------------- */
+/* アニメーション */
 @keyframes zoomIn {
-    0% {
-        transform: scale(0.1) translateY(-200px);
-        opacity: 0;
-    }
-    60% {
-        transform: scale(1.3) translateY(20px);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(1) translateY(0px);
-        opacity: 1;
-    }
+    0% { transform: scale(0.1) translateY(-200px); opacity: 0; }
+    60% { transform: scale(1.3) translateY(20px); opacity: 1; }
+    100% { transform: scale(1) translateY(0px); opacity: 1; }
 }
 
-/* -------------------------
-   D：光の爆発
-------------------------- */
 @keyframes explode {
     0% { filter: drop-shadow(0px 0px 0px gold); }
     50% { filter: drop-shadow(0px 0px 40px gold); }
     100% { filter: drop-shadow(0px 0px 10px gold); }
 }
 
-/* -------------------------
-   E：上昇
-------------------------- */
 @keyframes rise {
     0% { transform: translateY(0px); }
     100% { transform: translateY(-20px); }
 }
 
-/* -------------------------
-   E：光の輪（永続）
-------------------------- */
 @keyframes shine {
     0% { filter: drop-shadow(0px 0px 5px gold); }
     50% { filter: drop-shadow(0px 0px 25px gold); }
@@ -203,7 +195,7 @@ if st.session_state.questions:
             st.session_state.last_correct = correct
             st.session_state.answered = True
 
-        # ○×＋新トロフィー
+        # ○×＋トロフィー（右側表示）
         if st.session_state.answered:
             if st.session_state.last_correct:
                 st.markdown("<div class='mark correct'>○</div>", unsafe_allow_html=True)
