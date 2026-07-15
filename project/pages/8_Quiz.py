@@ -13,28 +13,45 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ============================
-# ランク定義（侃仕様）
+# ランク定義（テスト合格でランクアップ）
 # ============================
-RANKS = [
-    ("F",   10,  5,   "blue"),
-    ("E",   20,  10,  "blue"),
-    ("D",   30,  15,  "blue"),
-    ("C",   40,  20,  "blue"),
-    ("B",   50,  25,  "green"),
-    ("A",   60,  30,  "green"),
-    ("A+",  70,  40,  "green"),
-    ("AA",  80,  50,  "red"),
-    ("S",   90,  60,  "red"),
-    ("SS",  100, 70,  "red"),
-    ("SSS", 110, 80,  "red"),
-    ("LEGEND", 999, 100, "gold")
-]
+RANK_ORDER = ["F","E","D","C","B","A","A+","AA","S","SS","SSS","LEGEND"]
 
-def get_rank(score):
-    if score >= 300:
-        return RANKS[-1]
-    idx = min(score // 25, len(RANKS) - 2)
-    return RANKS[idx]
+TEST_COUNTS = {
+    "F": 5,
+    "E": 15,
+    "D": 25,
+    "C": 35,
+    "B": 45,
+    "A": 55,
+    "A+": 65,
+    "AA": 75,
+    "S": 85,
+    "SS": 95,
+    "SSS": 105,
+    "LEGEND": 100
+}
+
+RANK_COLORS = {
+    "F": "blue",
+    "E": "blue",
+    "D": "blue",
+    "C": "blue",
+    "B": "green",
+    "A": "green",
+    "A+": "green",
+    "AA": "red",
+    "S": "red",
+    "SS": "red",
+    "SSS": "red",
+    "LEGEND": "gold"
+}
+
+def next_rank(current):
+    idx = RANK_ORDER.index(current)
+    if idx < len(RANK_ORDER) - 1:
+        return RANK_ORDER[idx + 1]
+    return current
 
 # ============================
 # JSON → 配列変換（choices用）
@@ -57,12 +74,10 @@ def load_profile(user_id):
 
     profile = {
         "user_id": user_id,
-        "score": 0,
+        "score": 0,              # スコアは演出用に残す
         "max_combo": 0,
         "rank": "F",
         "title": None,
-        "unlocked_questions": 10,
-        "test_question_count": 5,
         "legend_flag": False
     }
     supabase.table("profiles").insert(profile).execute()
@@ -74,11 +89,12 @@ def save_profile(profile):
 # ============================
 # 問題読み込み系
 # ============================
-def load_questions(rank):
+def load_questions_by_rank(rank):
     res = supabase.table("questions").select("*").execute()
     all_q = [fix_choices(q) for q in res.data]
 
-    order = ["F","E","D","C","B","A","A+","AA","S","SS","SSS","LEGEND"]
+    # rank_required が自分のランク以下のものだけ出題
+    order = RANK_ORDER
     return [q for q in all_q if order.index(q["rank_required"]) <= order.index(rank)]
 
 def load_mistakes(user_id):
@@ -188,6 +204,8 @@ if "current_questions" not in st.session_state:
     st.session_state.current_questions = []
 if "index" not in st.session_state:
     st.session_state.index = 0
+if "test_correct" not in st.session_state:
+    st.session_state.test_correct = 0
 
 # ============================
 # ホーム
@@ -196,20 +214,22 @@ st.title("防災クイズRPG")
 
 mode = st.selectbox("モードを選んでください", ["ホーム", "練習", "復習", "テスト", "ステータス"])
 
+current_rank = profile["rank"]
+rank_color = RANK_COLORS[current_rank]
+test_count = TEST_COUNTS[current_rank]
+
 # ============================
 # ステータス画面
 # ============================
 if mode == "ステータス":
-    rank_name, unlocked, test_count, color = get_rank(st.session_state.score)
     title = profile["title"] or ("最高権力者" if profile["legend_flag"] else "なし")
 
     st.markdown(f"""
-    <div style='border:3px solid {color}; padding:20px; border-radius:12px;'>
-        <h3 style='color:{color};'>ステータス</h3>
-        <b>ランク：</b> {rank_name}<br>
+    <div style='border:3px solid {rank_color}; padding:20px; border-radius:12px;'>
+        <h3 style='color:{rank_color};'>ステータス</h3>
+        <b>ランク：</b> {current_rank}<br>
         <b>スコア：</b> {st.session_state.score} pt<br>
         <b>最大連続正解：</b> {st.session_state.max_combo} 回<br>
-        <b>解放問題数：</b> {unlocked} 問<br>
         <b>テスト問題数：</b> {test_count} 問<br>
         <b>称号：</b> {title}
     </div>
@@ -219,8 +239,7 @@ if mode == "ステータス":
 # 練習モード
 # ============================
 elif mode == "練習":
-    rank_name, unlocked, test_count, color = get_rank(st.session_state.score)
-    questions = load_questions(rank_name)
+    questions = load_questions_by_rank(current_rank)
 
     if not questions:
         st.info("まだ問題が登録されていません。Supabaseのquestionsテーブルに問題を追加してね。")
@@ -308,19 +327,17 @@ elif mode == "復習":
                 components.html(cross_effect, height=700, scrolling=False)
 
 # ============================
-# テストモード
+# テストモード（合格でランクアップ）
 # ============================
 elif mode == "テスト":
-    rank_name, unlocked, test_count, color = get_rank(st.session_state.score)
-
-    if rank_name == "LEGEND":
+    if current_rank == "LEGEND":
         solved = load_solved(st.session_state.user_id)
         if len(solved) < 100:
             st.warning("LEGENDテストには100問必要です。まず練習モードで問題を解いてください。")
             st.stop()
         questions = random.sample(solved, 100)
     else:
-        questions_all = load_questions(rank_name)
+        questions_all = load_questions_by_rank(current_rank)
         if not questions_all:
             st.info("まだ問題が登録されていません。Supabaseのquestionsテーブルに問題を追加してね。")
             st.stop()
@@ -330,20 +347,35 @@ elif mode == "テスト":
         st.session_state.current_questions = questions
         st.session_state.index = 0
         st.session_state.answered = False
+        st.session_state.test_correct = 0
 
     if st.session_state.index >= len(st.session_state.current_questions):
-        st.success("テスト終了！")
+        total = len(st.session_state.current_questions)
+        correct = st.session_state.test_correct
+        rate = correct / total if total > 0 else 0.0
+        rounded = round(rate, 1)
 
-        if rank_name == "LEGEND":
-            st.balloons()
-            st.success("LEGEND達成！称号：最高権力者")
-            profile["title"] = "最高権力者"
-            profile["legend_flag"] = True
+        st.write(f"正解数：{correct}/{total}（正答率 {rounded*100:.1f}%）")
+
+        if rounded >= 0.9:
+            st.success("合格！ランクアップ！")
+            new_rank = next_rank(current_rank)
+            profile["rank"] = new_rank
+
+            if new_rank == "LEGEND":
+                profile["title"] = "最高権力者"
+                profile["legend_flag"] = True
+                st.balloons()
+                st.success("LEGEND達成！称号：最高権力者")
+
             save_profile(profile)
+        else:
+            st.error("不合格…もう一度挑戦しよう")
 
         st.session_state.current_questions = []
         st.session_state.index = 0
         st.session_state.answered = False
+        st.session_state.test_correct = 0
         st.stop()
 
     q = st.session_state.current_questions[st.session_state.index]
@@ -359,6 +391,7 @@ elif mode == "テスト":
 
             if choice == q["answer"]:
                 st.success("正解！")
+                st.session_state.test_correct += 1
                 components.html(circle_effect, height=700, scrolling=False)
             else:
                 st.error("不正解…")
