@@ -12,8 +12,9 @@ st.title("SafeBox Manager - 安否確認")
 # family_code の取得
 family_code = st.session_state.get("family_code", None)
 
-if not family_code:
-    st.error("ログイン情報がありません")
+# ログインチェック
+if "family_code" not in st.session_state:
+    st.warning("初めにログインしてください")
     st.stop()
 
 st.info(f"ログイン中：{family_code}")
