@@ -23,6 +23,9 @@ if "choices" not in st.session_state:
 if "answered" not in st.session_state:
     st.session_state.answered = False
 
+if "last_correct" not in st.session_state:
+    st.session_state.last_correct = False
+
 # ============================
 # 防災クイズ
 # ============================
@@ -94,21 +97,35 @@ if st.session_state.choices is None:
 else:
     choices = st.session_state.choices
 
-st.subheader("問題")
-st.write("### " + quiz["q"])
-
-choice = st.radio("選択肢を選んでね", choices)
-
 # ============================
-# ◯演出（HTML全部入り）
+# ◯演出（問題の上に表示）
 # ============================
 
 circle_effect = """<!DOCTYPE html><html><head><style>
 body{margin:0;background:white;overflow:hidden;}
-.scene{width:100vw;height:100vh;display:flex;justify-content:center;align-items:center;perspective:900px;transform:translateY(-140px);}
-.totem{position:relative;width:160px;height:160px;transform-style:preserve-3d;animation:spinIn 3.2s ease-out,float 4s ease-in-out infinite 3.2s,vanish 1.6s ease-in-out 7.0s forwards;}
-.core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100px;height:100px;border-radius:50%;border:12px solid #00ff88;background:transparent;box-shadow:0 0 25px #00ff88,0 0 55px #ffee55,0 0 90px rgba(255,255,120,.9);animation:pulse 2.4s ease-in-out infinite;}
-.particle{position:absolute;width:14px;height:14px;border-radius:50%;animation:spread 2.2s ease-out infinite;}
+.scene{
+    position:absolute;
+    top:120px;        /* ← 問題の上に表示する位置 */
+    left:50%;
+    transform:translateX(-50%);
+}
+.totem{
+    position:relative;width:160px;height:160px;
+    transform-style:preserve-3d;
+    animation:spinIn 3.2s ease-out,float 4s ease-in-out infinite 3.2s,vanish 1.6s ease-in-out 7.0s forwards;
+}
+.core{
+    position:absolute;left:50%;top:50%;
+    transform:translate(-50%,-50%);
+    width:100px;height:100px;border-radius:50%;
+    border:12px solid #00ff88;background:transparent;
+    box-shadow:0 0 25px #00ff88,0 0 55px #ffee55,0 0 90px rgba(255,255,120,.9);
+    animation:pulse 2.4s ease-in-out infinite;
+}
+.particle{
+    position:absolute;width:14px;height:14px;border-radius:50%;
+    animation:spread 2.2s ease-out infinite;
+}
 .green{background:#00ff88;}
 .yellow{background:#ffee55;}
 .p1,.p2,.p3,.p4,.p5,.p6{left:50%;top:50%;}
@@ -129,18 +146,39 @@ body{margin:0;background:white;overflow:hidden;}
 """
 
 # ============================
-# ✖演出（170px巨大バツ）
+# ✖演出（問題の上に表示）
 # ============================
 
 cross_effect = """<!DOCTYPE html><html><head><style>
 body{margin:0;background:white;overflow:hidden;}
-.scene{width:100vw;height:100vh;display:flex;justify-content:center;align-items:center;perspective:900px;transform:translateY(-140px);}
-.totem{position:relative;width:160px;height:160px;transform-style:preserve-3d;animation:spinIn 3.2s ease-out,float 4s ease-in-out infinite 3.2s,vanish 1.6s ease-in-out 7.0s forwards;}
-.core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:170px;height:170px;}
-.core::before,.core::after{content:"";position:absolute;left:50%;top:50%;width:170px;height:28px;background:#ff2b2b;box-shadow:0 0 25px #ff2b2b,0 0 45px #ff7b00,0 0 75px rgba(255,120,0,.9);transform-origin:center;}
+.scene{
+    position:absolute;
+    top:120px;        /* ← 問題の上に表示する位置 */
+    left:50%;
+    transform:translateX(-50%);
+}
+.totem{
+    position:relative;width:160px;height:160px;
+    transform-style:preserve-3d;
+    animation:spinIn 3.2s ease-out,float 4s ease-in-out infinite 3.2s,vanish 1.6s ease-in-out 7.0s forwards;
+}
+.core{
+    position:absolute;left:50%;top:50%;
+    transform:translate(-50%,-50%);
+    width:170px;height:170px;
+}
+.core::before,.core::after{
+    content:"";position:absolute;left:50%;top:50%;
+    width:170px;height:28px;background:#ff2b2b;
+    box-shadow:0 0 25px #ff2b2b,0 0 45px #ff7b00,0 0 75px rgba(255,120,0,.9);
+    transform-origin:center;
+}
 .core::before{transform:translate(-50%,-50%) rotate(45deg);}
 .core::after{transform:translate(-50%,-50%) rotate(-45deg);}
-.particle{position:absolute;width:14px;height:14px;border-radius:50%;animation:spread 2.2s ease-out infinite;}
+.particle{
+    position:absolute;width:14px;height:14px;border-radius:50%;
+    animation:spread 2.2s ease-out infinite;
+}
 .orange{background:#ff7b00;}
 .red{background:#ff2b2b;}
 .yellow{background:#ffee55;}
@@ -161,6 +199,29 @@ body{margin:0;background:white;overflow:hidden;}
 """
 
 # ============================
+# 演出（問題の上に表示）
+# ============================
+
+if st.session_state.answered:
+    if st.session_state.last_correct:
+        components.html(circle_effect, height=400, scrolling=False)
+    else:
+        components.html(cross_effect, height=400, scrolling=False)
+
+# ============================
+# 問題表示
+# ============================
+
+st.subheader("問題")
+st.write("### " + quiz["q"])
+
+# ============================
+# 選択肢
+# ============================
+
+choice = st.radio("選択肢を選んでね", choices)
+
+# ============================
 # 判定ボタン（演出後は消える）
 # ============================
 
@@ -171,16 +232,23 @@ if not st.session_state.answered:
         st.session_state.answered = True
 
         if choice == quiz["a"]:
+            st.session_state.last_correct = True
             st.success("正解！ +1pt")
             st.session_state.score += 1
-            components.html(circle_effect, height=700, scrolling=False)
         else:
+            st.session_state.last_correct = False
             st.error("不正解… -1pt")
             st.session_state.score -= 1
-            components.html(cross_effect, height=700, scrolling=False)
 
 else:
-    st.write("")  # ← 送信ボタンを完全に消す
+    st.write("") 
+
+#============================
+#スコア環境
+#===========================
+
+if st.session_state.score < 0:
+    st.session_state.score = 0
 
 # ============================
 # 次の問題へ（演出後も必ず表示）
