@@ -14,16 +14,16 @@ st.title("SafeBox Manager - Settings")
 st.write("ここでは、家族コードやパスワードの変更、家族の名前登録が可能です。")
 
 # ---------------------------
-# パスワード再発行
+# パスワード再発行（user_id 方式）
 # ---------------------------
 
 def generate_reset_token():
     return secrets.token_urlsafe(32)
 
-def save_reset_token(email, token):
+def save_reset_token(user_id, token):
     supabase.table("profiles").update({
         "reset_token": token
-    }).eq("email", email).execute()
+    }).eq("user_id", user_id).execute()
 
 def send_reset_email(to_email, reset_link):
     message = Mail(
@@ -48,19 +48,27 @@ def send_reset_email(to_email, reset_link):
 
 st.subheader("パスワード再発行")
 
-email = st.text_input("登録メールアドレス")
+user_id_input = st.text_input("個人コード（user_id）を入力してください")
 
 if st.button("再発行メールを送る"):
-    token = generate_reset_token()
-    reset_link = "https://your-app-url/reset?token=dummy"
-    save_reset_token(email, token)
-
-    success = send_reset_email(email, reset_link)
-
-    if success:
-        st.success("再発行メールを送信しました")
+    if user_id_input.strip() == "":
+        st.error("個人コードを入力してください")
     else:
-        st.error("メール送信に失敗しました")
+        token = generate_reset_token()
+
+        # 本来は token を含む URL を作る
+        reset_link = f"https://your-app-url/reset?token={token}"
+
+        # Supabase に保存
+        save_reset_token(user_id_input, token)
+
+        # メール送信（メールアドレスは user_id と同じにしている場合のみ）
+        success = send_reset_email(user_id_input, reset_link)
+
+        if success:
+            st.success("再発行メールを送信しました")
+        else:
+            st.error("メール送信に失敗しました")
 
 # ---------------------------
 # 家族の名前登録
@@ -119,10 +127,8 @@ if members.data:
             st.write(f"- {m['name']}")
 
         with col2:
-            # Streamlit ボタン
             btn = st.button("🗑️", key=f"delete_{m['id']}")
 
-            # ボタンに CSS を当てる（DOM を直接操作）
             st.markdown(
                 f"""
                 <script>
@@ -139,4 +145,3 @@ if members.data:
                 st.rerun()
 else:
     st.info("まだ家族が登録されていません")
-
