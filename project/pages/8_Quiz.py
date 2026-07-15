@@ -63,7 +63,7 @@ def save_profile(profile):
 # 問題読み込み系
 # ============================
 def load_questions(rank):
-    res = supabase.table("questions").select("*").execute()
+    res = supabase.table("question").select("*").execute()
     all_q = res.data
     order = ["F","E","D","C","B","A","A+","AA","S","SS","SSS","LEGEND"]
     return [q for q in all_q if order.index(q["rank_required"]) <= order.index(rank)]
@@ -73,7 +73,7 @@ def load_mistakes(user_id):
     ids = [m["question_id"] for m in res.data]
     if not ids:
         return []
-    q = supabase.table("questions").select("*").in_("id", ids).execute()
+    q = supabase.table("question").select("*").in_("id", ids).execute()
     return q.data
 
 def load_solved(user_id):
@@ -81,7 +81,7 @@ def load_solved(user_id):
     ids = [s["question_id"] for s in res.data]
     if not ids:
         return []
-    q = supabase.table("questions").select("*").in_("id", ids).execute()
+    q = supabase.table("question").select("*").in_("id", ids).execute()
     return q.data
 
 # ============================
