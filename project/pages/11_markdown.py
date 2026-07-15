@@ -9,6 +9,7 @@ st.title("クイズ：トーテム演出つき")
 question = "Minecraftでネザーにいる巨大なスライムの名前は？"
 answer = "マグマキューブ"
 
+print(question)
 user_answer = st.text_input("答えを入力してね")
 
 # ◯演出（侃の緑の輪っか）
