@@ -10,7 +10,7 @@ st.title("SafeBox Manager - Family code")
 
 # ログインチェック
 if "family_code" not in st.session_state:
-    st.warning("ログインしてください")
+    st.warning("初めにログインしてください")
     st.stop()
 
 family_code = st.session_state["family_code"]
