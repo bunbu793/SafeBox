@@ -6,90 +6,24 @@ url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
-st.title("SafeBox Manager - 設定")
+st.title("SafeBox Manager - 安否確認")
 
 # ============================
 # ログインチェック
 # ============================
-family_code = st.session_state.get("family_code", None)
-
-if family_code is None:
+if "family_code" not in st.session_state:
     st.warning("初めにログインしてください")
     st.stop()
 
-st.success(f"ログイン中：{family_code}")
-
+st.success(f"ログイン中：{st.session_state['family_code']}")
 # ============================
-# family_settings を読み込む
+# Supabase から現在の設定を読み込む
 # ============================
-res = supabase.table("family_settings").select("*").eq("family_code", family_code).execute()
+profile_res = supabase.table("profiles").select("*").eq("user_id").execute()
+profile = profile_res.data[0]
 
-# なければ作成
-if len(res.data) == 0:
-    supabase.table("family_settings").insert({
-        "family_code": family_code,
-        "language": "日本語",
-        "theme": "Light"
-    }).execute()
-    res = supabase.table("family_settings").select("*").eq("family_code", family_code).execute()
-
-settings = res.data[0]
-
-current_language = settings.get("language", "日本語")
-current_theme = settings.get("theme", "Light")
-
-# ============================
-# 言語設定
-# ============================
-st.subheader("言語設定")
-
-language = st.selectbox(
-    "Language / 言語を選択",
-    ["日本語", "English"],
-    index=["日本語", "English"].index(current_language)
-)
-
-if st.button("言語を保存"):
-    supabase.table("family_settings").update({"language": language}).eq("family_code", family_code).execute()
-    st.session_state["language"] = language
-    st.success("言語設定を保存しました")
-
-# ============================
-# テーマ設定
-# ============================
-st.subheader("テーマ設定")
-
-theme = st.selectbox(
-    "テーマを選択",
-    ["Light", "Dark", "Cyber"],
-    index=["Light", "Dark", "Cyber"].index(current_theme)
-)
-
-if st.button("テーマを保存"):
-    supabase.table("family_settings").update({"theme": theme}).eq("family_code", family_code).execute()
-    st.session_state["theme"] = theme
-    st.success("テーマ設定を保存しました")
-
-# ============================
-# テーマCSS（即時反映）
-# ============================
-if theme == "Dark":
-    st.markdown("""
-    <style>
-    body { background-color: #111 !important; color: #eee !important; }
-    </style>
-    """, unsafe_allow_html=True)
-
-elif theme == "Cyber":
-    st.markdown("""
-    <style>
-    body {
-        background-color: #000 !important;
-        color: #0affff !important;
-        font-family: 'Consolas', monospace !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+current_language = profile.get("language", "日本語")
+current_theme = profile.get("theme", "Light")
 
 # ============================
 # 家族の名前登録
@@ -119,6 +53,25 @@ st.subheader("登録済みの家族")
 
 members = supabase.table("family_members").select("*").eq("family_code", family_code).execute()
 
+# CSS（赤いゴミ箱ボタン）
+st.markdown("""
+<style>
+.red-trash-btn {
+    background-color: #ff4d4d !important;
+    color: white !important;
+    border: none !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-size: 18px !important;
+    box-shadow: 0px 2px 3px rgba(0,0,0,0.3) !important;
+}
+.red-trash-btn:hover {
+    background-color: #ff1a1a !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 if members.data:
     for m in members.data:
         col1, col2 = st.columns([4, 1])
@@ -141,6 +94,16 @@ if members.data:
 
         with col2:
             btn = st.button("🗑️", key=f"delete_{m['id']}")
+
+            st.markdown(
+                f"""
+                <script>
+                const btns = window.parent.document.querySelectorAll('button[data-testid="baseButton-delete_{m["id"]}"]');
+                btns.forEach(btn => btn.classList.add('red-trash-btn'));
+                </script>
+                """,
+                unsafe_allow_html=True
+            )
 
             if btn:
                 supabase.table("family_members").delete().eq("id", m["id"]).execute()

@@ -13,39 +13,6 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# family_settings を読み込む
-settings_res = supabase.table("family_settings").select("*").eq("family_code", st.session_state["family_code"]).execute()
-
-if len(settings_res.data) > 0:
-    settings = settings_res.data[0]
-
-    # 言語設定
-    st.session_state["language"] = settings.get("language", "日本語")
-
-    # テーマ設定
-    st.session_state["theme"] = settings.get("theme", "Light")
-
-    # テーマCSSを適用
-    theme = st.session_state["theme"]
-
-    if theme == "Dark":
-        st.markdown("""
-        <style>
-        body { background-color: #111 !important; color: #eee !important; }
-        </style>
-        """, unsafe_allow_html=True)
-
-    elif theme == "Cyber":
-        st.markdown("""
-        <style>
-        body {
-            background-color: #000 !important;
-            color: #0affff !important;
-            font-family: 'Consolas', monospace !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
 # ============================
 # 演出 HTML（そのまま）
 # ============================
