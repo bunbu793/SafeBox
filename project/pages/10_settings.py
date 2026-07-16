@@ -19,7 +19,7 @@ st.success(f"ログイン中：{st.session_state['family_code']}")
 # ============================
 # Supabase から現在の設定を読み込む
 # ============================
-profile_res = supabase.table("profiles").select("*").eq("user_id", user_id).execute()
+profile_res = supabase.table("profiles").select("*").eq("user_id", st.session_state["user_id"]).execute()
 profile = profile_res.data[0]
 
 current_language = profile.get("language", "日本語")
