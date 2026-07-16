@@ -11,20 +11,11 @@ st.title("SafeBox Manager - 安否確認")
 # ============================
 # ログインチェック
 # ============================
-if "user_id" not in st.session_state:
-    st.warning("初めにログインしてください")
-    st.stop()
-
 if "family_code" not in st.session_state:
     st.warning("初めにログインしてください")
     st.stop()
 
-# ★★★ ここが今回の修正ポイント ★★★
-user_id = st.session_state["user_id"]
-family_code = st.session_state["family_code"]
-
-st.info(f"ログイン中：{family_code}")
-
+st.success(f"ログイン中：{st.session_state['family_code']}")
 # ============================
 # Supabase から現在の設定を読み込む
 # ============================
