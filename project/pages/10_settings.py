@@ -4,17 +4,24 @@ from supabase import create_client
 # Supabase 初期化
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
-supabase: Client = create_client(url, key)
+supabase = create_client(url, key)
 
 st.title("SafeBox Manager - 安否確認")
 
-# family_code の取得
-family_code = st.session_state.get("family_code", None)
-
+# ============================
 # ログインチェック
+# ============================
+if "user_id" not in st.session_state:
+    st.warning("初めにログインしてください")
+    st.stop()
+
 if "family_code" not in st.session_state:
     st.warning("初めにログインしてください")
     st.stop()
+
+# ★★★ ここが今回の修正ポイント ★★★
+user_id = st.session_state["user_id"]
+family_code = st.session_state["family_code"]
 
 st.info(f"ログイン中：{family_code}")
 
