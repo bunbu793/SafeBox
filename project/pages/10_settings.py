@@ -8,22 +8,18 @@ supabase = create_client(url, key)
 
 st.title("SafeBox Manager - 安否確認")
 
-# ============================
 # ログインチェック
-# ============================
 if "family_code" not in st.session_state:
     st.warning("初めにログインしてください")
     st.stop()
 
-st.success(f"ログイン中：{st.session_state['family_code']}")
-# ============================
-# Supabase から現在の設定を読み込む
-# ============================
-profile_res = supabase.table("profiles").select("*").eq("user_id").execute()
-profile = profile_res.data[0]
+family_code = st.session_state["family_code"]
 
-current_language = profile.get("language", "日本語")
-current_theme = profile.get("theme", "Light")
+# 家族データ取得
+response = supabase.table("family_profiles").select("*").eq("family_code", family_code).execute()
+family_data = response.data[0] if response.data else {}
+
+st.info(f"ログイン中：{family_code}")
 
 # ============================
 # 家族の名前登録
