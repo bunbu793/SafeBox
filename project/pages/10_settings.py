@@ -1,26 +1,22 @@
 import streamlit as st
 from supabase import create_client
 
-# Supabase 接続
+# Supabase 初期化
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
-supabase = create_client(url, key)
+supabase: Client = create_client(url, key)
 
-st.title("SafeBox Manager - Settings")
+st.title("SafeBox Manager - 安否確認")
 
-# ============================
+# family_code の取得
+family_code = st.session_state.get("family_code", None)
+
 # ログインチェック
-# ============================
-if "user_id" not in st.session_state:
-    st.warning("ログインしてください")
-    st.stop()
-
 if "family_code" not in st.session_state:
-    st.warning("ログインしてください（family_code がありません）")
+    st.warning("初めにログインしてください")
     st.stop()
 
-user_id = st.session_state["user_id"]
-family_code = st.session_state["family_code"]
+st.info(f"ログイン中：{family_code}")
 
 # ============================
 # Supabase から現在の設定を読み込む
