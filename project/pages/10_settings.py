@@ -11,15 +11,28 @@ st.title("SafeBox Manager - 安否確認")
 # ============================
 # ログインチェック
 # ============================
-if "family_code" not in st.session_state:
+family_code = st.session_state.get("family_code", None)
+
+if family_code is None:
     st.warning("初めにログインしてください")
     st.stop()
 
-st.success(f"ログイン中：{st.session_state['family_code']}")
+st.success(f"ログイン中：{family_code}")
+
 # ============================
-# Supabase から現在の設定を読み込む
+# Supabase から現在の設定を読み込む（family_code で管理）
 # ============================
-profile_res = supabase.table("profiles").select("*").eq("user_id", st.session_state["user_id"]).execute()
+profile_res = supabase.table("profiles").select("*").eq("family_code", family_code).execute()
+
+# プロフィールが無い場合は作成
+if len(profile_res.data) == 0:
+    supabase.table("profiles").insert({
+        "family_code": family_code,
+        "language": "日本語",
+        "theme": "Light"
+    }).execute()
+    profile_res = supabase.table("profiles").select("*").eq("family_code", family_code).execute()
+
 profile = profile_res.data[0]
 
 current_language = profile.get("language", "日本語")
@@ -37,7 +50,7 @@ language = st.selectbox(
 )
 
 if st.button("言語を保存"):
-    supabase.table("profiles").update({"language": language}).eq("user_id", user_id).execute()
+    supabase.table("profiles").update({"language": language}).eq("family_code", family_code).execute()
     st.session_state["language"] = language
     st.success("言語設定を保存しました")
 
@@ -53,7 +66,7 @@ theme = st.selectbox(
 )
 
 if st.button("テーマを保存"):
-    supabase.table("profiles").update({"theme": theme}).eq("user_id", user_id).execute()
+    supabase.table("profiles").update({"theme": theme}).eq("family_code", family_code).execute()
     st.session_state["theme"] = theme
     st.success("テーマ設定を保存しました")
 
