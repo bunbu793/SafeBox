@@ -362,11 +362,13 @@ elif mode == "練習":
     if not questions:
         st.info("まだ問題が登録されていません。")
     else:
+        # 初期化
         if "current_questions" not in st.session_state or not st.session_state.current_questions:
             st.session_state.current_questions = random.sample(questions, min(10, len(questions)))
             st.session_state.index = 0
             st.session_state.answered = False
 
+        # 終了処理
         if st.session_state.index >= len(st.session_state.current_questions):
             st.session_state.current_questions = []
             st.session_state.index = 0
@@ -378,44 +380,62 @@ elif mode == "練習":
         st.subheader(f"問題 {st.session_state.index+1}/{len(st.session_state.current_questions)}")
         st.write("### " + q["question"])
 
-        choice = st.radio("選択肢を選んでね", q["choices"], key=f"practice_{st.session_state.index}")
+        # ラジオボタンでは何も起こらない
+        choice = st.radio(
+            "選択肢を選んでね",
+            q["choices"],
+            key=f"practice_{st.session_state.index}"
+        )
 
+        # 送信ボタンを押したときだけ answered=True
         if not st.session_state.answered:
             if st.button("送信"):
                 st.session_state.answered = True
 
+                # solved 登録（ゲスト以外）
                 if not is_guest:
-                    supabase.table("solved").upsert({"user_id": user_id, "question_id": q["id"]}).execute()
+                    supabase.table("solved").upsert({
+                        "user_id": user_id,
+                        "question_id": q["id"]
+                    }).execute()
 
-        if choice == q["answer"]:
-            st.success("正解！ +1pt")
-
-            # コンボ処理
-            st.session_state.combo = st.session_state.get("combo", 0) + 1
-            st.session_state.max_combo = max(st.session_state.max_combo, st.session_state.combo)
-
-            st.session_state.score += 1
-            components.html(circle_effect, height=700, scrolling=False)
-
-        else:
-            st.error("不正解…")
-
-            # コンボリセット
-            st.session_state.combo = 0
-
-            if not is_guest:
-                supabase.table("mistakes").upsert({
-                    "user_id": user_id,
-                    "question_id": q["id"]
-                }).execute()
-
-            components.html(cross_effect, height=700, scrolling=False)
-
+        # ★★★ ここが修正ポイント ★★★
+        # answered=True のときだけ演出を発生させる
         if st.session_state.answered:
+            if choice == q["answer"]:
+                st.success("正解！ +1pt")
+
+                # コンボ処理
+                st.session_state.combo = st.session_state.get("combo", 0) + 1
+                st.session_state.max_combo = max(st.session_state.max_combo, st.session_state.combo)
+
+                st.session_state.score += 1
+
+                # 正解演出（送信後のみ）
+                components.html(circle_effect, height=700, scrolling=False)
+
+            else:
+                st.error("不正解…")
+
+                # コンボリセット
+                st.session_state.combo = 0
+
+                # 間違い登録（ゲスト以外）
+                if not is_guest:
+                    supabase.table("mistakes").upsert({
+                        "user_id": user_id,
+                        "question_id": q["id"]
+                    }).execute()
+
+                # 不正解演出（送信後のみ）
+                components.html(cross_effect, height=700, scrolling=False)
+
+            # 次の問題へ
             if st.button("次の問題へ"):
                 st.session_state.index += 1
                 st.session_state.answered = False
 
+                # プロフィール保存
                 save_profile({
                     "user_id": user_id,
                     "password": profile.get("password", ""),
