@@ -6,6 +6,15 @@ import streamlit.components.v1 as components
 from uuid import uuid4
 from supabase import create_client
 
+#============================
+#streamlitのセッションステートを初期化
+#===========================
+if "test_correct" not in st.session_state:
+    st.session_state["test_correct"] = 0
+
+if "tesst_total" not in st.session_state:
+    st.session_state["test_total"] = 0
+
 # ============================
 # Supabase 接続
 # ============================
