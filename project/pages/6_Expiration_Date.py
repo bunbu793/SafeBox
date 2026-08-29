@@ -26,14 +26,22 @@ expiration = st.date_input("賞味期限 / 使用期限")
 memo = st.text_area("メモ（任意）")
 
 if st.button("登録"):
-    supabase.table("item_expiration").insert({
+    if item_name.strip() == "":
+        st.error("アイテム名を入力してください")
+        st.stop()
+    exp_date = expiration.strftime("%Y-%m-%d")
+
+    data = {
         "family_code": family_code,
         "item_name": item_name,
-        "expiration": str(expiration),
-        "memo": memo
-    }).execute()
-    st.success("登録しました")
+        "expiration": exp_date,
+        "memo": memo if memo.strip() != "" else None
+    }
 
+    st.write("送信データ:" , data)
+
+    supabase.table("item_expiration").insert(data).execute()
+    st.success(f"{item_name} の期限を登録しました")
 # -------------------------
 # 登録済みアイテム一覧
 # -------------------------
