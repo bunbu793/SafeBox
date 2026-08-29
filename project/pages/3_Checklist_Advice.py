@@ -133,19 +133,37 @@ rate = int((done / total) * 100)
 
 def get_rank(rate):
     if rate >= 90:
-        return "A（非常に安全）"
+        return "A", "非常に安全", "#4CAF50"   # 緑
     elif rate >= 70:
-        return "B（まあ安心）"
+        return "B", "まあ安心", "#8BC34A"   # 黄緑
     elif rate >= 50:
-        return "C（改善必要）"
+        return "C", "改善必要", "#FFC107"   # 黄色
     elif rate >= 30:
-        return "D（危険）"
+        return "D", "危険", "#FF9800"       # オレンジ
     else:
-        return "E（非常に危険）"
+        return "E", "非常に危険", "#F44336" # 赤
 
-rank = get_rank(rate)
+rank_letter, rank_text, color = get_rank(rate)
 
-st.metric("安全度ランク", rank)
+# 色付きボックス
+st.markdown(
+    f"""
+    <div style="
+        background-color:{color};
+        padding: 15px;
+        border-radius: 10px;
+        color: white;
+        font-size: 22px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
+    ">
+        安全度ランク：{rank_letter}（{rank_text}）
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 st.metric("達成率", f"{rate}%")
 
 st.write("### チェック状況")
