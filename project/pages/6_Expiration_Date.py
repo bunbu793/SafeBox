@@ -31,6 +31,10 @@ if st.button("登録"):
         st.stop()
     exp_date = expiration.strftime("%Y-%m-%d")
 
+    memo_value = memo.strip()
+    if memo_value == "":
+        memo_value = None
+
     data = {
         "family_code": family_code,
         "item_name": item_name,
