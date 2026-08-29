@@ -29,8 +29,10 @@ if st.button("登録"):
     if item_name.strip() == "":
         st.error("アイテム名を入力してください")
         st.stop()
+
     exp_date = expiration.strftime("%Y-%m-%d")
 
+    # memo を必ず None か文字列にする（NULL を絶対に送らない）
     memo_value = memo.strip()
     if memo_value == "":
         memo_value = None
@@ -39,13 +41,15 @@ if st.button("登録"):
         "family_code": family_code,
         "item_name": item_name,
         "expiration": exp_date,
-        "memo": memo if memo.strip() != "" else None
+        "memo": memo_value
     }
 
-    st.write("送信データ:" , data)
+    st.write("送信データ:", data)
 
     supabase.table("item_expiration").insert(data).execute()
-    st.success(f"{item_name} の期限を登録しました")
+
+    st.success("登録しました")
+
 # -------------------------
 # 登録済みアイテム一覧
 # -------------------------
