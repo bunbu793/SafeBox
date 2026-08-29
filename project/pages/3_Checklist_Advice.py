@@ -8,7 +8,6 @@ key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
 st.title("SafeBox Manager - Checklist")
-
 # ログインチェック
 if "family_code" not in st.session_state:
     st.warning("初めにログインしてください")
