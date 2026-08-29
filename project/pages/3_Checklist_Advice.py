@@ -8,6 +8,7 @@ key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
 st.title("SafeBox Manager - Checklist")
+
 # ログインチェック
 if "family_code" not in st.session_state:
     st.warning("初めにログインしてください")
@@ -16,7 +17,9 @@ if "family_code" not in st.session_state:
 st.success(f"ログイン中：{st.session_state['family_code']}")
 
 # Supabase から家族データを読み込む
-response = supabase.table("family_profiles").select("*").eq("family_code", st.session_state["family_code"]).execute()
+response = supabase.table("family_profiles").select("*").eq(
+    "family_code", st.session_state["family_code"]
+).execute()
 
 if response.data:
     family_data = response.data[0]
@@ -24,10 +27,9 @@ if response.data:
 else:
     family_count = 1
 
-
 st.info(f"登録されている家族人数: **{family_count} 人**")
 
-# 必要量の説明（元のまま）
+# 必要量の説明
 items = {
     "飲料水（1人1日3L × 3日分）": {"qty": 9, "unit": "L"},
     "非常食（1人3日分）": {"qty": 3, "unit": "食"},
@@ -51,10 +53,8 @@ for name, value in required.items():
     st.write(f"- **{name}**：必要量 → **{value}**")
 
 # -------------------------
-# チェック状態の永続化（JSON）
+# チェック状態の永続化（Supabase）
 # -------------------------
-
-CHECK_PATH = "data/checklist.json"
 
 response = supabase.table("checklist").select("*").eq(
     "family_code", st.session_state["family_code"]
@@ -73,7 +73,6 @@ st.subheader("チェックリスト")
 
 checked = {}
 for name in required.keys():
-    # 保存されている状態を反映
     default = saved_checks.get(name, False)
     checked[name] = st.checkbox(f"{name}：{required[name]}", value=default)
 
@@ -104,7 +103,7 @@ else:
     st.success("すべての備品がチェック済みとなっています")
 
 #--------------------
-#買い物リストの作成
+# 買い物リストの作成
 #--------------------
 
 st.subheader("買い物リスト")
@@ -119,6 +118,36 @@ if shopping_list:
     st.error("買い物リスト")
     for item in shopping_list:
         st.write(f"- {item}")
-
 else:
     st.success("買い物をする必要はありません")
+
+# -------------------------
+# 家族安全度チェッカー（追加部分）
+# -------------------------
+
+st.subheader("家族安全度チェッカー")
+
+total = len(checked)
+done = sum(1 for v in checked.values() if v)
+rate = int((done / total) * 100)
+
+def get_rank(rate):
+    if rate >= 90:
+        return "A（非常に安全）"
+    elif rate >= 70:
+        return "B（まあ安心）"
+    elif rate >= 50:
+        return "C（改善必要）"
+    elif rate >= 30:
+        return "D（危険）"
+    else:
+        return "E（非常に危険）"
+
+rank = get_rank(rate)
+
+st.metric("安全度ランク", rank)
+st.metric("達成率", f"{rate}%")
+
+st.write("### チェック状況")
+for name, done in checked.items():
+    st.write(f"- {name}: {'✔️' if done else '❌'}")
