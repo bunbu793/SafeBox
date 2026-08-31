@@ -305,122 +305,58 @@ else:
 # =========================================================
 
 st.divider()
+
 st.subheader("🛡️ 家族の備え")
 
+
 # =========================================================
-# ランク判定
+# 安全度ランク判定
 # =========================================================
 
 def get_rank(rate):
 
     if rate >= 90:
-        return "A", "安全"
+        return "A", "安全", "#43A047"
 
     elif rate >= 70:
-        return "B", "おおむね安全"
+        return "B", "おおむね安全", "#8BC34A"
 
     elif rate >= 50:
-        return "C", "注意"
+        return "C", "注意", "#FBC02D"
 
     elif rate >= 30:
-        return "D", "警戒"
+        return "D", "警戒", "#FF9800"
 
     else:
-        return "E", "危険"
+        return "E", "危険", "#F44336"
 
 
-rank, safety_text = get_rank(rate)
+rank, safety_text, rank_color = get_rank(rate)
+
 
 # =========================================================
-# ランク表示
+# 安全度ランク 1本バー
 # =========================================================
 
-rank_col1, rank_col2 = st.columns([1, 3])
-
-with rank_col1:
-
-    st.metric(
-        "安全度ランク",
-        rank
-    )
-
-with rank_col2:
-
-    if rank == "A":
-        st.success("安全")
-
-    elif rank == "B":
-        st.success("おおむね安全")
-
-    elif rank == "C":
-        st.warning("注意")
-
-    elif rank == "D":
-        st.warning("警戒")
-
-    else:
-        st.error("危険")
-
-# =========================================================
-# 5段階安全度
-# =========================================================
-
-st.markdown("### 安全度")
-
-# 5つの段階を表示
-levels = [
-    ("E", "危険"),
-    ("D", "警戒"),
-    ("C", "注意"),
-    ("B", "おおむね安全"),
-    ("A", "安全")
-]
-
-cols = st.columns(5)
-
-for i, (level_rank, level_name) in enumerate(levels):
-
-    with cols[i]:
-
-        if level_rank == rank:
-
-            if level_rank == "A":
-                st.success(f"**{level_rank}**\n\n{level_name}")
-
-            elif level_rank == "B":
-                st.success(f"**{level_rank}**\n\n{level_name}")
-
-            elif level_rank == "C":
-                st.warning(f"**{level_rank}**\n\n{level_name}")
-
-            elif level_rank == "D":
-                st.warning(f"**{level_rank}**\n\n{level_name}")
-
-            else:
-                st.error(f"**{level_rank}**\n\n{level_name}")
-
-        else:
-
-            st.write(f"**{level_rank}**")
-            st.caption(level_name)
-
-# =========================================================
-# 達成率
-# =========================================================
-
-st.subheader("📈 準備達成率")
-
-st.metric(
-    "防災備品の準備達成率",
-    f"{rate}%"
+st.markdown(
+    f"""
+    <div style="
+        background-color: {rank_color};
+        color: white;
+        width: 100%;
+        padding: 16px 20px;
+        border-radius: 10px;
+        box-sizing: border-box;
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    ">
+        安全度ランク：{rank}（{safety_text}）
+    </div>
+    """,
+    unsafe_allow_html=True
 )
-
-st.progress(rate / 100)
-
-st.write(
-    f"**{done} / {total} 項目** 準備済み"
-)
-
 # =========================================================
 # チェック状況
 # =========================================================
