@@ -151,7 +151,6 @@ with st.form("add_item"):
                     f"登録に失敗しました：{e}"
                 )
 
-
 # -------------------------
 # 登録済みデータ取得
 # -------------------------
@@ -161,7 +160,6 @@ st.divider()
 st.subheader("📦 登録済み防災グッズ")
 
 try:
-
     response = (
         supabase
         .table("emergency_items")
@@ -174,12 +172,26 @@ try:
     items = response.data
 
 except Exception as e:
-
-    st.error(
-        f"データの取得に失敗しました：{e}"
-    )
-
+    st.error(f"データの取得に失敗しました：{e}")
     items = []
+
+
+# -------------------------
+# 期限判定
+# -------------------------
+
+def get_status(expiry_date):
+    today = date.today()
+    days_left = (expiry_date - today).days
+
+    if days_left < 0:
+        return "🔴", "期限切れ", days_left
+
+    elif days_left <= 30:
+        return "🟡", "期限間近", days_left
+
+    else:
+        return "🟢", "安全", days_left
 
 
 # -------------------------
@@ -192,9 +204,7 @@ safe_count = 0
 
 for item in items:
 
-    expiry = date.fromisoformat(
-        item["expiry_date"]
-    )
+    expiry = date.fromisoformat(item["expiry_date"])
 
     icon, status, days_left = get_status(expiry)
 
@@ -209,158 +219,203 @@ for item in items:
 
 
 # -------------------------
-# 状態サマリー
+# サマリー
 # -------------------------
+
+st.markdown("### 📊 期限状況")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.metric(
-        "🔴 期限切れ",
-        expired_count
-    )
+    st.error(f"🔴 期限切れ\n\n**{expired_count} 件**")
 
 with col2:
-    st.metric(
-        "🟡 期限間近",
-        warning_count
-    )
+    st.warning(f"🟡 期限間近\n\n**{warning_count} 件**")
 
 with col3:
-    st.metric(
-        "🟢 安全",
-        safe_count
+    st.success(f"🟢 安全\n\n**{safe_count} 件**")
+
+
+# -------------------------
+# フィルター
+# -------------------------
+
+st.markdown("### 🔎 絞り込み")
+
+filter_col1, filter_col2 = st.columns(2)
+
+with filter_col1:
+    filter_status = st.selectbox(
+        "状態",
+        [
+            "すべて",
+            "🔴 期限切れ",
+            "🟡 期限間近",
+            "🟢 安全"
+        ]
+    )
+
+with filter_col2:
+    search_name = st.text_input(
+        "商品名検索",
+        placeholder="例：水、アルファ米"
     )
 
 
 # -------------------------
-# 一覧表示
+# 商品一覧
 # -------------------------
 
 if not items:
 
-    st.info(
-        "まだ防災グッズが登録されていません。"
-    )
+    st.info("まだ防災グッズが登録されていません。")
 
 else:
 
+    shown_count = 0
+
     for item in items:
 
-        expiry = date.fromisoformat(
-            item["expiry_date"]
-        )
+        expiry = date.fromisoformat(item["expiry_date"])
 
-        icon, status, days_left = get_status(
-            expiry
-        )
+        icon, status, days_left = get_status(expiry)
 
         # -------------------------
-        # 色
+        # フィルター判定
         # -------------------------
 
-        if status == "期限切れ":
+        if filter_status != "すべて":
+            if not filter_status.startswith(icon):
+                continue
 
-            box_color = "#ffebee"
-            border_color = "#e53935"
+        if search_name.strip():
+            if search_name.lower() not in item["name"].lower():
+                continue
 
-        elif status == "期限間近":
-
-            box_color = "#fff8e1"
-            border_color = "#f9a825"
-
-        else:
-
-            box_color = "#e8f5e9"
-            border_color = "#43a047"
-
+        shown_count += 1
 
         # -------------------------
         # カード
         # -------------------------
 
-        st.markdown(
-            f"""
-            <div style="
-                background-color:{box_color};
-                border-left:8px solid {border_color};
-                padding:15px;
-                margin-bottom:15px;
-                border-radius:10px;
-            ">
+        with st.container(border=True):
 
-                <h3 style="margin-top:0;">
-                    {icon} {item["name"]}
-                </h3>
+            # 上段
+            top_col1, top_col2 = st.columns([4, 1])
 
-                <p>
-                    <b>状態：</b>{status}
-                </p>
+            with top_col1:
+                st.markdown(
+                    f"## {icon} {item['name']}"
+                )
 
-                <p>
-                    <b>{item["expiry_type"]}：</b>
-                    {item["expiry_date"]}
-                </p>
+            with top_col2:
 
-                <p>
-                    <b>残り：</b>
-                    {
-                        "期限切れ"
-                        if days_left < 0
-                        else f"あと {days_left} 日"
-                    }
-                </p>
+                if status == "期限切れ":
+                    st.error("期限切れ")
 
-                <p>
-                    <b>カテゴリ：</b>
-                    {item["category"]}
-                </p>
+                elif status == "期限間近":
+                    st.warning("期限間近")
 
-                <p>
-                    <b>数量：</b>
-                    {item["quantity"]}
-                </p>
+                else:
+                    st.success("安全")
 
-                <p>
-                    <b>保管場所：</b>
-                    {item["location"] or "未登録"}
-                </p>
+            # 区切り
+            st.divider()
 
-                <p>
-                    <b>メモ：</b>
-                    {item["memo"] or "なし"}
-                </p>
+            # 情報
+            info_col1, info_col2 = st.columns(2)
 
-            </div>
-            """,
-            unsafe_allow_html=True
+            with info_col1:
+
+                st.markdown(
+                    f"**📅 {item['expiry_type']}**"
+                )
+
+                st.write(
+                    item["expiry_date"]
+                )
+
+                if days_left < 0:
+
+                    st.error(
+                        f"⚠️ {abs(days_left)} 日超過"
+                    )
+
+                elif days_left == 0:
+
+                    st.warning(
+                        "⚠️ 今日が期限です"
+                    )
+
+                else:
+
+                    st.write(
+                        f"残り **{days_left} 日**"
+                    )
+
+            with info_col2:
+
+                st.markdown("**📦 基本情報**")
+
+                st.write(
+                    f"カテゴリ：{item['category']}"
+                )
+
+                st.write(
+                    f"数量：{item['quantity']}"
+                )
+
+                if item["location"]:
+                    st.write(
+                        f"📍 保管場所：{item['location']}"
+                    )
+                else:
+                    st.write(
+                        "📍 保管場所：未登録"
+                    )
+
+            # メモ
+            if item["memo"]:
+
+                st.markdown("**📝 メモ**")
+
+                st.info(
+                    item["memo"]
+                )
+
+            # 削除
+            delete_col1, delete_col2 = st.columns([5, 1])
+
+            with delete_col2:
+
+                if st.button(
+                    "🗑️ 削除",
+                    key=f"delete_{item['id']}"
+                ):
+
+                    try:
+
+                        (
+                            supabase
+                            .table("emergency_items")
+                            .delete()
+                            .eq("id", item["id"])
+                            .eq("family_code", family_code)
+                            .execute()
+                        )
+
+                        st.success("削除しました")
+                        st.rerun()
+
+                    except Exception as e:
+
+                        st.error(
+                            f"削除に失敗しました：{e}"
+                        )
+
+    # 検索結果が0件
+    if shown_count == 0:
+
+        st.info(
+            "条件に一致する防災グッズがありません。"
         )
-
-        # -------------------------
-        # 削除
-        # -------------------------
-
-        if st.button(
-            f"🗑️ {item['name']}を削除",
-            key=f"delete_{item['id']}"
-        ):
-
-            try:
-
-                (
-                    supabase
-                    .table("emergency_items")
-                    .delete()
-                    .eq("id", item["id"])
-                    .eq("family_code", family_code)
-                    .execute()
-                )
-
-                st.success("削除しました。")
-                st.rerun()
-
-            except Exception as e:
-
-                st.error(
-                    f"削除に失敗しました：{e}"
-                )
