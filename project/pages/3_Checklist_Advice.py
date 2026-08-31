@@ -62,11 +62,9 @@ try:
 except Exception:
     family_count = 1
 
-# =========================================================
-# 家族人数
-# =========================================================
-
-st.info(f"👨‍👩‍👧‍👦 登録されている家族人数：**{family_count} 人**")
+st.info(
+    f"👨‍👩‍👧‍👦 登録されている家族人数：**{family_count} 人**"
+)
 
 # =========================================================
 # 必要な防災備品
@@ -209,7 +207,8 @@ for name, data in required.items():
 total = len(checked)
 
 done = sum(
-    1 for value in checked.values()
+    1
+    for value in checked.values()
     if value
 )
 
@@ -230,13 +229,15 @@ if st.button(
 
     try:
 
-        supabase.table("checklist").upsert({
-            "family_code": family_code,
-            "data": json.dumps(
-                checked,
-                ensure_ascii=False
-            )
-        }).execute()
+        supabase.table("checklist").upsert(
+            {
+                "family_code": family_code,
+                "data": json.dumps(
+                    checked,
+                    ensure_ascii=False
+                )
+            }
+        ).execute()
 
         st.success("チェック状態を保存しました！")
 
@@ -247,7 +248,7 @@ if st.button(
         )
 
 # =========================================================
-# 未チェックの備品
+# 未チェック
 # =========================================================
 
 st.divider()
@@ -255,8 +256,8 @@ st.subheader("⚠️ 準備できていない備品")
 
 not_completed = [
     name
-    for name, done_value in checked.items()
-    if not done_value
+    for name, value in checked.items()
+    if not value
 ]
 
 if not_completed:
@@ -265,12 +266,10 @@ if not_completed:
 
         data = required[name]
 
-        with st.container(border=True):
-
-            st.warning(
-                f"{name}　｜　"
-                f"必要量：{data['qty']} {data['unit']}"
-            )
+        st.warning(
+            f"{name}　｜　"
+            f"必要量：{data['qty']} {data['unit']}"
+        )
 
 else:
 
@@ -287,9 +286,9 @@ st.subheader("🛒 買い物リスト")
 
 shopping_list = []
 
-for name, done_value in checked.items():
+for name, value in checked.items():
 
-    if not done_value:
+    if not value:
 
         data = required[name]
 
@@ -316,59 +315,113 @@ st.divider()
 st.subheader("🛡️ 家族の備え")
 
 # =========================================================
-# 安全状態
+# 安全度判定
 # =========================================================
 
 def get_safety(rate):
 
     if rate >= 90:
-        return "非常に安全"
+        return "安全", "#43a047", 4
 
     elif rate >= 70:
-        return "おおむね安全"
+        return "おおむね安全", "#8bc34a", 3
 
     elif rate >= 50:
-        return "注意"
+        return "注意", "#fbc02d", 2
 
     elif rate >= 30:
-        return "警戒"
+        return "警戒", "#ff9800", 1
 
     else:
-        return "危険"
+        return "危険", "#f44336", 0
 
 
-safety_text = get_safety(rate)
+safety_text, safety_color, safety_level = get_safety(rate)
 
-# 状態によって標準UIを変更
-if safety_text == "非常に安全":
+# =========================================================
+# 安全度タンク
+# =========================================================
 
-    st.success(
-        f"🟢 {safety_text}"
-    )
+st.markdown("### 安全度")
 
-elif safety_text == "おおむね安全":
+# 5段階の幅
+segments = [
+    ("危険", "#f44336"),
+    ("警戒", "#ff9800"),
+    ("注意", "#fbc02d"),
+    ("おおむね安全", "#8bc34a"),
+    ("安全", "#43a047")
+]
 
-    st.success(
-        f"🟢 {safety_text}"
-    )
+# バー本体
+bar_parts = ""
 
-elif safety_text == "注意":
+for index, (label, color) in enumerate(segments):
 
-    st.warning(
-        f"🟡 {safety_text}"
-    )
+    if index == safety_level:
 
-elif safety_text == "警戒":
+        border = "4px solid #222"
+        opacity = "1"
+        height = "44px"
 
-    st.warning(
-        f"🟠 {safety_text}"
-    )
+    else:
 
-else:
+        border = "1px solid rgba(0,0,0,0.08)"
+        opacity = "0.35"
+        height = "34px"
 
-    st.error(
-        f"🔴 {safety_text}"
-    )
+    bar_parts += f"""
+        <div
+            style="
+                flex:1;
+                background:{color};
+                height:{height};
+                opacity:{opacity};
+                border:{border};
+                border-radius:8px;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                margin:0 3px;
+                box-sizing:border-box;
+                font-size:12px;
+                font-weight:700;
+                color:white;
+                text-align:center;
+            "
+        >
+            {label}
+        </div>
+    """
+
+st.markdown(
+    f"""
+    <div style="
+        width:100%;
+        display:flex;
+        align-items:center;
+        margin:10px 0 10px 0;
+    ">
+        {bar_parts}
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# 現在の状態
+st.markdown(
+    f"""
+    <div style="
+        text-align:center;
+        font-size:24px;
+        font-weight:700;
+        margin:8px 0 18px 0;
+    ">
+        現在の状態：{safety_text}
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # =========================================================
 # 達成率
@@ -379,9 +432,7 @@ st.metric(
     f"{rate}%"
 )
 
-st.progress(
-    rate / 100
-)
+st.progress(rate / 100)
 
 st.write(
     f"**{done} / {total} 項目** 準備済み"
@@ -395,19 +446,14 @@ st.subheader("📋 チェック状況")
 
 for name, is_done in checked.items():
 
-    data = required[name]
+    if is_done:
 
-    col1, col2 = st.columns([4, 1])
-
-    with col1:
-
-        st.write(
-            f"**{name}**"
+        st.success(
+            f"✓ {name}　準備済み"
         )
 
-    with col2:
+    else:
 
-        if is_done:
-            st.success("完了")
-        else:
-            st.error("未準備")
+        st.error(
+            f"{name}　未準備"
+        )
