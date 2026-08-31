@@ -29,12 +29,10 @@ st.markdown(
     """
     <style>
 
-    /* 全体 */
     .main {
         padding-top: 20px;
     }
 
-    /* タイトル */
     .page-title {
         font-size: 36px;
         font-weight: 700;
@@ -47,38 +45,36 @@ st.markdown(
         margin-bottom: 25px;
     }
 
-    /* ステータスラベル */
+    /* 状態ラベル */
     .status-label {
         display: inline-block;
-        padding: 6px 16px;
+        padding: 6px 18px;
         border-radius: 7px;
         color: white;
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 700;
-        margin-bottom: 10px;
+        margin: 8px 0 10px 0;
     }
 
-    /* 安全度ランク */
-    .rank-box {
+    /* 状態を大きく表示するバー */
+    .status-box {
         width: 100%;
-        padding: 12px 15px;
+        padding: 12px;
         border-radius: 9px;
         color: white;
         text-align: center;
-        font-size: 19px;
+        font-size: 20px;
         font-weight: 700;
-        margin: 8px 0 18px 0;
+        margin-bottom: 18px;
         box-sizing: border-box;
     }
 
-    /* 商品タイトル */
     .item-title {
-        font-size: 23px;
+        font-size: 24px;
         font-weight: 700;
-        margin-bottom: 2px;
+        margin-bottom: 3px;
     }
 
-    /* 情報 */
     .info-title {
         font-size: 14px;
         color: #666;
@@ -91,12 +87,11 @@ st.markdown(
         margin-bottom: 10px;
     }
 
-    /* メモ */
     .memo-box {
         background-color: #f5f5f5;
         border-radius: 8px;
-        padding: 10px 12px;
-        margin-top: 8px;
+        padding: 12px;
+        margin-top: 10px;
         margin-bottom: 12px;
     }
 
@@ -132,59 +127,47 @@ if "family_code" not in st.session_state:
 family_code = st.session_state["family_code"]
 
 # =========================================================
-# 期限判定
+# 状態判定
 # =========================================================
 
 def get_status(expiry_date):
+    """
+    期限までの日数によって
+    安全 / 注意 / 警戒 / 危険
+    を判定する
+    """
+
     today = date.today()
     days_left = (expiry_date - today).days
 
-    # E
+    # 期限切れ
     if days_left < 0:
         return {
-            "status": "期限切れ",
-            "rank": "E",
-            "rank_text": "非常に危険",
+            "status": "危険",
             "color": "#f44336",
             "days": days_left
         }
 
-    # D
+    # 30日以内
     elif days_left <= 30:
         return {
-            "status": "期限間近",
-            "rank": "D",
-            "rank_text": "注意が必要",
+            "status": "警戒",
             "color": "#ff9800",
             "days": days_left
         }
 
-    # C
+    # 90日以内
     elif days_left <= 90:
         return {
             "status": "注意",
-            "rank": "C",
-            "rank_text": "やや注意",
             "color": "#fbc02d",
             "days": days_left
         }
 
-    # B
-    elif days_left <= 180:
-        return {
-            "status": "おおむね安全",
-            "rank": "B",
-            "rank_text": "おおむね安全",
-            "color": "#8bc34a",
-            "days": days_left
-        }
-
-    # A
+    # 91日以上
     else:
         return {
             "status": "安全",
-            "rank": "A",
-            "rank_text": "安全",
             "color": "#43a047",
             "days": days_left
         }
@@ -288,11 +271,15 @@ if submitted:
             if response.data:
                 st.success(f"「{name}」を登録しました！")
                 st.rerun()
+
             else:
                 st.error("登録できませんでした。")
 
         except Exception as e:
-            st.error(f"登録に失敗しました：{e}")
+
+            st.error(
+                f"登録に失敗しました：{e}"
+            )
 
 
 # =========================================================
@@ -314,7 +301,10 @@ try:
 
 except Exception as e:
 
-    st.error(f"データの取得に失敗しました：{e}")
+    st.error(
+        f"データの取得に失敗しました：{e}"
+    )
+
     items = []
 
 
@@ -322,21 +312,29 @@ except Exception as e:
 # 件数集計
 # =========================================================
 
-expired_count = 0
+danger_count = 0
 warning_count = 0
+caution_count = 0
 safe_count = 0
 
 for item in items:
 
     try:
-        expiry = date.fromisoformat(item["expiry_date"])
+
+        expiry = date.fromisoformat(
+            item["expiry_date"]
+        )
+
         result = get_status(expiry)
 
-        if result["status"] == "期限切れ":
-            expired_count += 1
+        if result["status"] == "危険":
+            danger_count += 1
 
-        elif result["status"] in ["期限間近", "注意"]:
+        elif result["status"] == "警戒":
             warning_count += 1
+
+        elif result["status"] == "注意":
+            caution_count += 1
 
         else:
             safe_count += 1
@@ -346,28 +344,34 @@ for item in items:
 
 
 # =========================================================
-# 状態サマリー
+# 期限状況
 # =========================================================
 
 st.divider()
 
 st.subheader("📊 期限状況")
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.metric(
-        "期限切れ",
-        f"{expired_count} 件"
+        "危険",
+        f"{danger_count} 件"
     )
 
 with col2:
     st.metric(
-        "注意",
+        "警戒",
         f"{warning_count} 件"
     )
 
 with col3:
+    st.metric(
+        "注意",
+        f"{caution_count} 件"
+    )
+
+with col4:
     st.metric(
         "安全",
         f"{safe_count} 件"
@@ -388,10 +392,9 @@ with filter_col1:
         "状態",
         [
             "すべて",
-            "期限切れ",
-            "期限間近",
+            "危険",
+            "警戒",
             "注意",
-            "おおむね安全",
             "安全"
         ]
     )
@@ -423,6 +426,7 @@ else:
     for item in items:
 
         try:
+
             expiry = date.fromisoformat(
                 item["expiry_date"]
             )
@@ -433,8 +437,6 @@ else:
         result = get_status(expiry)
 
         status = result["status"]
-        rank = result["rank"]
-        rank_text = result["rank_text"]
         color = result["color"]
         days_left = result["days"]
 
@@ -466,7 +468,10 @@ else:
                 unsafe_allow_html=True
             )
 
-            # 色付きステータスラベル
+            # -------------------------------------------------
+            # 色付き状態ラベル
+            # -------------------------------------------------
+
             st.markdown(
                 f"""
                 <div
@@ -479,14 +484,17 @@ else:
                 unsafe_allow_html=True
             )
 
-            # 安全度ランク
+            # -------------------------------------------------
+            # 大きな状態バー
+            # -------------------------------------------------
+
             st.markdown(
                 f"""
                 <div
-                    class="rank-box"
+                    class="status-box"
                     style="background-color:{color};"
                 >
-                    安全度ランク：{rank}（{rank_text}）
+                    状態：{status}
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -506,7 +514,9 @@ else:
                 )
 
                 st.markdown(
-                    f'<div class="info-value">{item["expiry_type"]}</div>',
+                    f'<div class="info-value">'
+                    f'{item["expiry_type"]}'
+                    f'</div>',
                     unsafe_allow_html=True
                 )
 
@@ -516,7 +526,9 @@ else:
                 )
 
                 st.markdown(
-                    f'<div class="info-value">{item["expiry_date"]}</div>',
+                    f'<div class="info-value">'
+                    f'{item["expiry_date"]}'
+                    f'</div>',
                     unsafe_allow_html=True
                 )
 
@@ -536,7 +548,7 @@ else:
                 else:
 
                     st.write(
-                        f"残り **{days_left} 日**"
+                        f"あと **{days_left} 日**"
                     )
 
             with col2:
@@ -547,7 +559,9 @@ else:
                 )
 
                 st.markdown(
-                    f'<div class="info-value">{item["category"]}</div>',
+                    f'<div class="info-value">'
+                    f'{item["category"]}'
+                    f'</div>',
                     unsafe_allow_html=True
                 )
 
@@ -557,7 +571,9 @@ else:
                 )
 
                 st.markdown(
-                    f'<div class="info-value">{item["quantity"]}</div>',
+                    f'<div class="info-value">'
+                    f'{item["quantity"]}'
+                    f'</div>',
                     unsafe_allow_html=True
                 )
 
@@ -621,7 +637,7 @@ else:
                         )
 
     # -------------------------------------------------
-    # 検索結果が0件
+    # 検索結果なし
     # -------------------------------------------------
 
     if shown_count == 0:
