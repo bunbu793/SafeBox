@@ -41,7 +41,7 @@ st.caption("必要な防災備品がそろっているか確認しましょう�
 st.success(f"ログイン中：{family_code}")
 
 # =========================================================
-# 家族データ取得
+# 家族データ
 # =========================================================
 
 try:
@@ -54,8 +54,7 @@ try:
     )
 
     if response.data:
-        family_data = response.data[0]
-        family_count = family_data.get("members", 1)
+        family_count = response.data[0].get("members", 1)
     else:
         family_count = 1
 
@@ -128,7 +127,7 @@ required = {
 }
 
 # =========================================================
-# 必要量の目安
+# 必要量
 # =========================================================
 
 st.divider()
@@ -137,21 +136,17 @@ st.subheader("📦 必要量の目安")
 for name, data in required.items():
 
     with st.container(border=True):
-
         st.markdown(f"### {name}")
-
         st.caption(data["description"])
-
         st.write(
             f"必要量：**{data['qty']} {data['unit']}**"
         )
 
 # =========================================================
-# Supabaseからチェック状態を取得
+# チェック状態取得
 # =========================================================
 
 try:
-
     response = (
         supabase
         .table("checklist")
@@ -161,14 +156,12 @@ try:
     )
 
     if response.data:
-
         try:
             saved_checks = json.loads(
                 response.data[0]["data"]
             )
         except Exception:
             saved_checks = {}
-
     else:
         saved_checks = {}
 
@@ -248,7 +241,7 @@ if st.button(
         )
 
 # =========================================================
-# 未チェック
+# 未準備
 # =========================================================
 
 st.divider()
@@ -267,8 +260,8 @@ if not_completed:
         data = required[name]
 
         st.warning(
-            f"{name}　｜　"
-            f"必要量：{data['qty']} {data['unit']}"
+            f"{name}　｜　必要量："
+            f"{data['qty']} {data['unit']}"
         )
 
 else:
@@ -315,117 +308,107 @@ st.divider()
 st.subheader("🛡️ 家族の備え")
 
 # =========================================================
-# 安全度判定
+# ランク判定
 # =========================================================
 
-def get_safety(rate):
+def get_rank(rate):
 
     if rate >= 90:
-        return "安全", "#43a047", 4
+        return "A", "安全"
 
     elif rate >= 70:
-        return "おおむね安全", "#8bc34a", 3
+        return "B", "おおむね安全"
 
     elif rate >= 50:
-        return "注意", "#fbc02d", 2
+        return "C", "注意"
 
     elif rate >= 30:
-        return "警戒", "#ff9800", 1
+        return "D", "警戒"
 
     else:
-        return "危険", "#f44336", 0
+        return "E", "危険"
 
 
-safety_text, safety_color, safety_level = get_safety(rate)
+rank, safety_text = get_rank(rate)
 
 # =========================================================
-# 安全度タンク
+# ランク表示
+# =========================================================
+
+rank_col1, rank_col2 = st.columns([1, 3])
+
+with rank_col1:
+
+    st.metric(
+        "安全度ランク",
+        rank
+    )
+
+with rank_col2:
+
+    if rank == "A":
+        st.success("安全")
+
+    elif rank == "B":
+        st.success("おおむね安全")
+
+    elif rank == "C":
+        st.warning("注意")
+
+    elif rank == "D":
+        st.warning("警戒")
+
+    else:
+        st.error("危険")
+
+# =========================================================
+# 5段階安全度
 # =========================================================
 
 st.markdown("### 安全度")
 
-# 5段階の幅
-segments = [
-    ("危険", "#f44336"),
-    ("警戒", "#ff9800"),
-    ("注意", "#fbc02d"),
-    ("おおむね安全", "#8bc34a"),
-    ("安全", "#43a047")
+# 5つの段階を表示
+levels = [
+    ("E", "危険"),
+    ("D", "警戒"),
+    ("C", "注意"),
+    ("B", "おおむね安全"),
+    ("A", "安全")
 ]
 
-# バー本体
-bar_parts = ""
+cols = st.columns(5)
 
-for index, (label, color) in enumerate(segments):
+for i, (level_rank, level_name) in enumerate(levels):
 
-    if index == safety_level:
+    with cols[i]:
 
-        border = "4px solid #222"
-        opacity = "1"
-        height = "44px"
+        if level_rank == rank:
 
-    else:
+            if level_rank == "A":
+                st.success(f"**{level_rank}**\n\n{level_name}")
 
-        border = "1px solid rgba(0,0,0,0.08)"
-        opacity = "0.35"
-        height = "34px"
+            elif level_rank == "B":
+                st.success(f"**{level_rank}**\n\n{level_name}")
 
-    bar_parts += f"""
-        <div
-            style="
-                flex:1;
-                background:{color};
-                height:{height};
-                opacity:{opacity};
-                border:{border};
-                border-radius:8px;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                margin:0 3px;
-                box-sizing:border-box;
-                font-size:12px;
-                font-weight:700;
-                color:white;
-                text-align:center;
-            "
-        >
-            {label}
-        </div>
-    """
+            elif level_rank == "C":
+                st.warning(f"**{level_rank}**\n\n{level_name}")
 
-st.markdown(
-    f"""
-    <div style="
-        width:100%;
-        display:flex;
-        align-items:center;
-        margin:10px 0 10px 0;
-    ">
-        {bar_parts}
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+            elif level_rank == "D":
+                st.warning(f"**{level_rank}**\n\n{level_name}")
 
-# 現在の状態
-st.markdown(
-    f"""
-    <div style="
-        text-align:center;
-        font-size:24px;
-        font-weight:700;
-        margin:8px 0 18px 0;
-    ">
-        現在の状態：{safety_text}
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+            else:
+                st.error(f"**{level_rank}**\n\n{level_name}")
+
+        else:
+
+            st.write(f"**{level_rank}**")
+            st.caption(level_name)
 
 # =========================================================
 # 達成率
 # =========================================================
+
+st.subheader("📈 準備達成率")
 
 st.metric(
     "防災備品の準備達成率",
