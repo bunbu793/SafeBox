@@ -494,7 +494,7 @@ else:
                     class="status-box"
                     style="background-color:{color};"
                 >
-                    状態：{status}
+                    {status}
                 </div>
                 """,
                 unsafe_allow_html=True
