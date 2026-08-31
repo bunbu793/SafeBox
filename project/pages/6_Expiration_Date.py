@@ -469,8 +469,15 @@ else:
             )
 
             # -------------------------------------------------
-            # 色付き状態ラベル
+            # 左上の小さいラベル
             # -------------------------------------------------
+
+            label_text = f"{item['expiry_type']}"
+
+            if days_left < 0:
+                label_text += "切れ"
+            else:
+                label_text += " " + item["expiry_date"]
 
             st.markdown(
                 f"""
@@ -478,7 +485,7 @@ else:
                     class="status-label"
                     style="background-color:{color};"
                 >
-                    {status}
+                    {label_text}
                 </div>
                 """,
                 unsafe_allow_html=True
