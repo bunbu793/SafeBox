@@ -1,8 +1,3 @@
-
-TAKAHASHI KAN <pikatapioka@gmail.com>
-20:09 (0 分前)
-To 自分
-
 import streamlit as st
 from supabase import create_client
 import requests
