@@ -34,7 +34,7 @@ pref_links = {
     "京都府": "https://www.pref.kyoto.jp/kikikanri/index.html",
     "大阪府": "https://www.pref.osaka.lg.jp/life/list2.php?ctg03_id=11&ctg02_id=67",
     "兵庫県": "http://web.pref.hyogo.lg.jp/safe/index.html",
-    "奈良県": "https://www.pref.nara.jp/1718.htm",
+    "奈良県": "https://www.pref.nara.jp/n010/44720.html",
     "和歌山県": "https://www.pref.wakayama.lg.jp/prefg/011400/",
     "鳥取県": "https://www.pref.tottori.lg.jp/dd.aspx?menuid=8945",
     "島根県": "http://www.pref.shimane.lg.jp/bousai_info/bousai/",
