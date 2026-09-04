@@ -61,13 +61,37 @@ st.markdown("""
     bottom: -18px;
     background: var(--burst-color);
     clip-path: polygon(
-        50% 0%, 60% 15%, 80% 10%, 75% 30%, 
-        95% 35%, 80% 50%, 100% 60%, 75% 70%, 
-        85% 90%, 60% 85%, 50% 100%, 40% 85%, 
-        15% 90%, 25% 70%, 0% 60%, 20% 50%, 
+        50% 0%, 60% 15%, 80% 10%, 75% 30%,
+        95% 35%, 80% 50%, 100% 60%, 75% 70%,
+        85% 90%, 60% 85%, 50% 100%, 40% 85%,
+        15% 90%, 25% 70%, 0% 60%, 20% 50%,
         5% 35%, 25% 30%, 20% 10%, 40% 15%
     );
     z-index: -1;
+}
+
+@keyframes kobito-move {
+    0%   { right: -200px; opacity: 0; }
+    20%  { right: 80px; opacity: 1; }
+    70%  { right: 80px; opacity: 1; }
+    100% { right: -200px; opacity: 0; }
+}
+.kobito-box {
+    position: fixed;
+    top: 300px;
+    right: -200px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: kobito-move 6s ease-in-out forwards;
+}
+.kobito-balloon {
+    background:#fff;
+    border:2px solid #333;
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:10px;
 }
 
 </style>
@@ -94,63 +118,34 @@ st.write("""
 など、災害時に役立つ機能をまとめて利用できます。
 """)
 
-#小人を表示
-# フラグがなければ初期化
-if "kobito_shown" not in st.session_state:
-    st.session_state["kobito_shown"] = False
+# 画像取得用の共通関数
+def get_base64_image_from_url(url):
+    response = requests.get(url)
+    return base64.b64encode(response.content).decode()
 
-# 小人を一度だけ表示
-if not st.session_state.kobito_shown:
+# 小人ポップアップを表示する共通関数
+def show_kobito_popup(image_url, message, session_key):
+    if session_key not in st.session_state:
+        st.session_state[session_key] = False
 
-    def get_base64_image_from_url(url):
-        response = requests.get(url)
-        return base64.b64encode(response.content).decode()
-
-    kobito_intro = get_base64_image_from_url(
-            "https://raw.githubusercontent.com/bunbu793/SafeBox/main/project/assets/kobito1.png"
-            )
-
-    # CSS（アニメーション）
-    st.markdown("""
-    <style>
-    @keyframes kobito-move {
-        0%   { right: -200px; opacity: 0; }
-        20%  { right: 80px; opacity: 1; }
-        70%  { right: 80px; opacity: 1; }
-        100% { right: -200px; opacity: 0; }
-    }
-    .kobito-box {
-        position: fixed;
-        top: 300px;
-        right: -200px;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        animation: kobito-move 6s ease-in-out forwards;
-    }
-    .kobito-balloon {
-        background:#fff;
-        border:2px solid #333;
-        padding:10px;
-        border-radius:10px;
-        margin-bottom:10px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    # 小人表示
-    st.markdown(f"""
-    <div class="kobito-box">
-        <div class="kobito-balloon">
-            こんにちは！<br>ぼくが案内するよ！
+    if not st.session_state[session_key]:
+        img_b64 = get_base64_image_from_url(image_url)
+        st.markdown(f"""
+        <div class="kobito-box">
+            <div class="kobito-balloon">{message}</div>
+            <img src="data:image/png;base64,{img_b64}" width="150">
         </div>
-        <img src="data:image/png;base64,{kobito_intro}" width="150">
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+        st.session_state[session_key] = True
 
-    # フラグを立てる（次回以降は表示しない）
-    st.session_state.kobito_shown = True
+KOBITO_IMAGE_URL = "https://raw.githubusercontent.com/bunbu793/SafeBox/main/project/assets/kobito1.png"
+
+# ページ読み込み時の「こんにちは」（1回だけ）
+show_kobito_popup(
+    KOBITO_IMAGE_URL,
+    "こんにちは！<br>ぼくが案内するよ！",
+    "kobito_shown"
+)
 
 #ログインコードの初期化＋新規作成＋読み込み
 if "family_codes" not in st.session_state:
@@ -176,6 +171,13 @@ if st.button("決定"):
             if saved_password == input_password:
                 st.success("ログインに成功しました")
                 st.session_state["family_code"] = input_code
+
+                # ログイン成功時の「おかえりなさい」
+                show_kobito_popup(
+                    KOBITO_IMAGE_URL,
+                    "おかえりなさい！",
+                    "kobito_welcome_shown"
+                )
             else:
                 st.error("パスワードが違います")
         else:
@@ -191,6 +193,13 @@ if st.button("決定"):
             else:
                 st.success(f"ログインコード「{input_code}」を登録しました")
                 st.session_state["family_code"] = input_code
+
+                # 新規登録時の「ようこそ」
+                show_kobito_popup(
+                    KOBITO_IMAGE_URL,
+                    "ようこそ！<br>登録ありがとう！",
+                    "kobito_register_shown"
+                )
 
 # 現在のログインコード表示
 if "family_code" in st.session_state:
