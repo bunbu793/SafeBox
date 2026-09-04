@@ -139,8 +139,9 @@ if st.button("決定"):
 if "family_code" in st.session_state:
     st.info(f"現在のログインコード：{st.session_state['family_code']}")
 
+
 # =========================================================
-# 期限状況による小人コメント
+# 防災グッズの期限に応じた小人コメント
 # =========================================================
 
 from datetime import date
@@ -150,7 +151,7 @@ if "family_code" in st.session_state:
     family_code = st.session_state["family_code"]
 
     try:
-        # 防災グッズの期限データを取得
+        # Supabaseから防災グッズを取得
         response = (
             supabase
             .table("emergency_items")
@@ -161,12 +162,10 @@ if "family_code" in st.session_state:
 
         items = response.data or []
 
-        # 状態ごとの件数
+        today = date.today()
+
         expired_items = []
         warning_items = []
-        safe_items = []
-
-        today = date.today()
 
         for item in items:
 
@@ -174,7 +173,6 @@ if "family_code" in st.session_state:
                 expiry = date.fromisoformat(
                     item["expiry_date"]
                 )
-
             except Exception:
                 continue
 
@@ -186,84 +184,152 @@ if "family_code" in st.session_state:
             elif days_left <= 30:
                 warning_items.append(item)
 
-            else:
-                safe_items.append(item)
-
-        # -------------------------------------------------
-        # 小人のコメントを決定
-        # -------------------------------------------------
+        # =================================================
+        # 小人のセリフ
+        # =================================================
 
         if expired_items:
 
             kobito_message = (
-                "たいへん！\n\n"
-                f"期限が切れているものが "
-                f"{len(expired_items)}件 あるよ。\n"
-                "期限管理ページで確認してね！"
+                "たいへん！<br>"
+                "期限切れの防災グッズがあるよ！<br>"
+                "確認して交換してね！"
             )
-
-            comment_type = "danger"
 
         elif warning_items:
 
             kobito_message = (
-                "そろそろ確認してね！\n\n"
-                f"期限が近いものが "
-                f"{len(warning_items)}件 あるよ。\n"
-                "早めに交換しておくと安心だよ！"
+                "そろそろ確認してね！<br>"
+                "期限が近いものがあるよ！"
             )
-
-            comment_type = "warning"
 
         else:
 
             kobito_message = (
-                "ばっちり！\n\n"
-                "今のところ期限に問題はないよ。\n"
-                "この状態をキープしよう！"
+                "ばっちり！<br>"
+                "防災グッズは安全な状態だよ！"
             )
 
-            comment_type = "safe"
+        # =================================================
+        # 小人アニメーション
+        # =================================================
 
-        # -------------------------------------------------
-        # 小人表示
-        # -------------------------------------------------
+        def get_base64_image_from_url(url):
 
-        st.divider()
-        st.subheader("🧙 小人からのお知らせ")
+            response = requests.get(url)
 
-        col1, col2 = st.columns(
-            [1, 2],
-            vertical_alignment="center"
+            return base64.b64encode(
+                response.content
+            ).decode()
+
+        kobito_image = get_base64_image_from_url(
+            "https://raw.githubusercontent.com/"
+            "bunbu793/SafeBox/main/project/assets/"
+            "kobito1.png"
         )
 
-        with col1:
+        # =================================================
+        # CSS
+        # =================================================
 
-            try:
-                st.image(
-                    "project/assets/kobito_transparent.png",
-                    width=160
-                )
+        st.markdown(
+            """
+            <style>
 
-            except Exception:
-                st.write("🧙")
+            @keyframes kobito-move-expiration {
 
-        with col2:
+                0% {
+                    right: -220px;
+                    opacity: 0;
+                }
 
-            if comment_type == "danger":
+                15% {
+                    right: 80px;
+                    opacity: 1;
+                }
 
-                st.error(kobito_message)
+                75% {
+                    right: 80px;
+                    opacity: 1;
+                }
 
-            elif comment_type == "warning":
+                100% {
+                    right: -220px;
+                    opacity: 0;
+                }
+            }
 
-                st.warning(kobito_message)
+            .kobito-expiration-box {
 
-            else:
+                position: fixed;
 
-                st.success(kobito_message)
+                top: 300px;
 
-    except Exception as e:
+                right: -220px;
 
-        st.warning(
-            "期限情報を確認できませんでした。"
+                z-index: 9999;
+
+                display: flex;
+
+                flex-direction: column;
+
+                align-items: center;
+
+                animation:
+                    kobito-move-expiration
+                    7s
+                    ease-in-out
+                    forwards;
+            }
+
+            .kobito-expiration-balloon {
+
+                background: white;
+
+                border: 2px solid #333;
+
+                padding: 12px 16px;
+
+                border-radius: 12px;
+
+                margin-bottom: 10px;
+
+                font-size: 16px;
+
+                font-weight: 600;
+
+                box-shadow:
+                    0 3px 10px rgba(0,0,0,0.15);
+
+                white-space: nowrap;
+            }
+
+            </style>
+            """,
+            unsafe_allow_html=True
         )
+
+        # =================================================
+        # 小人本体
+        # =================================================
+
+        st.markdown(
+            f"""
+            <div class="kobito-expiration-box">
+
+                <div class="kobito-expiration-balloon">
+                    {kobito_message}
+                </div>
+
+                <img
+                    src="data:image/png;base64,{kobito_image}"
+                    width="150"
+                >
+
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    except Exception:
+        pass
