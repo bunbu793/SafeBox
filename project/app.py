@@ -1,9 +1,14 @@
 import streamlit as st
 from supabase import create_client
-import requests
-import base64
+from datetime import date
 import json
 import os
+
+from kobito_helper import (
+    KOBITO_IMAGE_URL,
+    inject_kobito_css,
+    show_kobito_popup
+)
 
 st.set_page_config(
     page_title="SafeBox Manager",
@@ -17,6 +22,8 @@ supabase = create_client(
 )
 
 # 小人 & バースト吹き出し CSS
+inject_kobito_css()
+
 st.markdown("""
 <style>
 
@@ -70,30 +77,6 @@ st.markdown("""
     z-index: -1;
 }
 
-@keyframes kobito-move {
-    0%   { right: -200px; opacity: 0; }
-    20%  { right: 80px; opacity: 1; }
-    70%  { right: 80px; opacity: 1; }
-    100% { right: -200px; opacity: 0; }
-}
-.kobito-box {
-    position: fixed;
-    top: 300px;
-    right: -200px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    animation: kobito-move 6s ease-in-out forwards;
-}
-.kobito-balloon {
-    background:#fff;
-    border:2px solid #333;
-    padding:10px;
-    border-radius:10px;
-    margin-bottom:10px;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -118,34 +101,58 @@ st.write("""
 など、災害時に役立つ機能をまとめて利用できます。
 """)
 
-# 画像取得用の共通関数
-def get_base64_image_from_url(url):
-    response = requests.get(url)
-    return base64.b64encode(response.content).decode()
-
-# 小人ポップアップを表示する共通関数
-def show_kobito_popup(image_url, message, session_key):
-    if session_key not in st.session_state:
-        st.session_state[session_key] = False
-
-    if not st.session_state[session_key]:
-        img_b64 = get_base64_image_from_url(image_url)
-        st.markdown(f"""
-        <div class="kobito-box">
-            <div class="kobito-balloon">{message}</div>
-            <img src="data:image/png;base64,{img_b64}" width="150">
-        </div>
-        """, unsafe_allow_html=True)
-        st.session_state[session_key] = True
-
-KOBITO_IMAGE_URL = "https://raw.githubusercontent.com/bunbu793/SafeBox/main/project/assets/kobito1.png"
-
 # ページ読み込み時の「こんにちは」（1回だけ）
 show_kobito_popup(
     KOBITO_IMAGE_URL,
     "こんにちは！<br>ぼくが案内するよ！",
     "kobito_shown"
 )
+
+# =========================================================
+# 家族の防災グッズ状態を確認する関数
+# =========================================================
+
+def get_family_status(family_code):
+    """家族の防災グッズの状態を確認して、danger/warning/safe/empty/unknownを判定する"""
+
+    try:
+        response = (
+            supabase
+            .table("emergency_items")
+            .select("expiry_date")
+            .eq("family_code", family_code)
+            .execute()
+        )
+        items = response.data or []
+    except Exception:
+        return "unknown"
+
+    if not items:
+        return "empty"
+
+    today = date.today()
+    has_danger = False
+    has_warning = False
+
+    for item in items:
+        try:
+            expiry = date.fromisoformat(item["expiry_date"])
+            days_left = (expiry - today).days
+
+            if days_left < 0:
+                has_danger = True
+            elif days_left <= 30:
+                has_warning = True
+        except Exception:
+            continue
+
+    if has_danger:
+        return "danger"
+    elif has_warning:
+        return "warning"
+    else:
+        return "safe"
+
 
 #ログインコードの初期化＋新規作成＋読み込み
 if "family_codes" not in st.session_state:
@@ -172,10 +179,21 @@ if st.button("決定"):
                 st.success("ログインに成功しました")
                 st.session_state["family_code"] = input_code
 
-                # ログイン成功時の「おかえりなさい」
+                # 在庫状態に応じて「おかえりなさい」メッセージを変える
+                status = get_family_status(input_code)
+
+                if status == "danger":
+                    welcome_message = "おかえりなさい！<br>大変です、期限切れのものがあります！"
+                elif status == "warning":
+                    welcome_message = "おかえりなさい！<br>もうすぐ期限のものがあります、注意して！"
+                elif status == "safe":
+                    welcome_message = "おかえりなさい！<br>今は安心だね！"
+                else:
+                    welcome_message = "おかえりなさい！<br>まずは防災グッズを登録してみよう！"
+
                 show_kobito_popup(
                     KOBITO_IMAGE_URL,
-                    "おかえりなさい！",
+                    welcome_message,
                     "kobito_welcome_shown"
                 )
             else:

@@ -2,6 +2,8 @@ import streamlit as st
 from supabase import create_client
 from datetime import date
 
+from kobito_helper import inject_kobito_css, show_kobito_popup, KOBITO_IMAGE_URL
+
 # =========================================================
 # Supabase接続
 # =========================================================
@@ -24,6 +26,8 @@ st.set_page_config(
 # =========================================================
 # CSS
 # =========================================================
+
+inject_kobito_css()
 
 st.markdown(
     """
@@ -344,6 +348,29 @@ for item in items:
 
 
 # =========================================================
+# 小人からのひとこと（在庫状況に応じて）
+# =========================================================
+
+if items:  # 何か登録されている場合のみ
+
+    if danger_count > 0:
+        kobito_message = "大変です！<br>期限切れのものがあります！<br>今すぐ確認してください！"
+    elif warning_count > 0:
+        kobito_message = "もうすぐ期限が来るものがあります。<br>そろそろ買い替えましょう！"
+    else:
+        kobito_message = "今は期限切れの心配はありません。<br>安心してください！"
+
+    # 件数の組み合わせが変わるたびに再表示される
+    status_key = f"kobito_status_{danger_count}_{warning_count}_{caution_count}"
+
+    show_kobito_popup(
+        KOBITO_IMAGE_URL,
+        kobito_message,
+        status_key
+    )
+
+
+# =========================================================
 # 期限状況
 # =========================================================
 
@@ -578,77 +605,4 @@ else:
                 )
 
                 st.markdown(
-                    f'<div class="info-value">'
-                    f'{item["quantity"]}'
-                    f'</div>',
-                    unsafe_allow_html=True
-                )
-
-                st.markdown(
-                    '<div class="info-title">保管場所</div>',
-                    unsafe_allow_html=True
-                )
-
-                st.write(
-                    item["location"] or "未登録"
-                )
-
-            # -------------------------------------------------
-            # メモ
-            # -------------------------------------------------
-
-            if item["memo"]:
-
-                st.markdown(
-                    f"""
-                    <div class="memo-box">
-                        <b>📝 メモ</b><br>
-                        {item["memo"]}
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-            # -------------------------------------------------
-            # 削除
-            # -------------------------------------------------
-
-            delete_col1, delete_col2 = st.columns([4, 1])
-
-            with delete_col2:
-
-                if st.button(
-                    "削除",
-                    key=f"delete_{item['id']}",
-                    use_container_width=True
-                ):
-
-                    try:
-
-                        (
-                            supabase
-                            .table("emergency_items")
-                            .delete()
-                            .eq("id", item["id"])
-                            .eq("family_code", family_code)
-                            .execute()
-                        )
-
-                        st.success("削除しました")
-                        st.rerun()
-
-                    except Exception as e:
-
-                        st.error(
-                            f"削除に失敗しました：{e}"
-                        )
-
-    # -------------------------------------------------
-    # 検索結果なし
-    # -------------------------------------------------
-
-    if shown_count == 0:
-
-        st.info(
-            "条件に一致する防災グッズがありません。"
-        )
+                    f'<div class="info-value">')
