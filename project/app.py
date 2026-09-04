@@ -23,7 +23,7 @@ supabase = create_client(
 )
 
 # ==========================================
-# 小人画像を取得
+# 小人画像
 # ==========================================
 
 def get_base64_image_from_url(url):
@@ -44,7 +44,7 @@ except Exception:
 
 
 # ==========================================
-# セッション状態の初期化
+# セッション状態
 # ==========================================
 
 if "kobito_shown" not in st.session_state:
@@ -58,35 +58,35 @@ if "family_code" not in st.session_state:
 
 
 # ==========================================
-# 共通CSS
+# 小人CSS
 # ==========================================
 
 st.markdown("""
 <style>
 
 /* ==========================================
-   最初の「こんにちは」小人
+   こんにちは小人
    ========================================== */
 
 @keyframes kobito-move {
 
     0% {
-        right: -200px;
+        right: -250px;
         opacity: 0;
     }
 
     20% {
-        right: 80px;
+        right: 40px;
         opacity: 1;
     }
 
-    70% {
-        right: 80px;
+    80% {
+        right: 40px;
         opacity: 1;
     }
 
     100% {
-        right: -200px;
+        right: -250px;
         opacity: 0;
     }
 }
@@ -96,15 +96,12 @@ st.markdown("""
     position: fixed;
 
     top: 300px;
-
-    right: -200px;
+    right: -250px;
 
     z-index: 9999;
 
     display: flex;
-
     flex-direction: column;
-
     align-items: center;
 
     animation: kobito-move 6s ease-in-out forwards;
@@ -118,22 +115,22 @@ st.markdown("""
 @keyframes kobito-welcome {
 
     0% {
-        right: -200px;
+        right: -250px;
         opacity: 0;
     }
 
     20% {
-        right: 80px;
+        right: 40px;
         opacity: 1;
     }
 
-    70% {
-        right: 80px;
+    80% {
+        right: 40px;
         opacity: 1;
     }
 
     100% {
-        right: -200px;
+        right: -250px;
         opacity: 0;
     }
 }
@@ -143,15 +140,12 @@ st.markdown("""
     position: fixed;
 
     top: 300px;
-
-    right: -200px;
+    right: -250px;
 
     z-index: 9999;
 
     display: flex;
-
     flex-direction: column;
-
     align-items: center;
 
     animation: kobito-welcome 6s ease-in-out forwards;
@@ -165,9 +159,9 @@ st.markdown("""
 .kobito-balloon,
 .kobito-welcome-balloon {
 
-    background: #ffffff;
+    background: white;
 
-    border: 2px solid #333333;
+    border: 2px solid #333;
 
     padding: 10px 18px;
 
@@ -179,78 +173,22 @@ st.markdown("""
 
     text-align: center;
 
+    white-space: nowrap;
 }
 
 
 /* ==========================================
-   バースト吹き出し
+   小人画像
    ========================================== */
 
-.burst-balloon {
+.kobito-box img,
+.kobito-welcome-box img {
 
-    --burst-color: #ff66aa;
+    display: block;
 
-    position: relative;
+    width: 150px;
 
-    background: white;
-
-    padding: 25px;
-
-    width: 230px;
-
-    text-align: center;
-
-    font-weight: 700;
-
-    border-radius: 50%;
-
-    border: 4px solid #333;
-
-    box-shadow: 0 0 0 10px var(--burst-color);
-}
-
-
-.burst-balloon::before {
-
-    content: "";
-
-    position: absolute;
-
-    top: -18px;
-
-    left: -18px;
-
-    right: -18px;
-
-    bottom: -18px;
-
-    background: var(--burst-color);
-
-    clip-path: polygon(
-
-        50% 0%,
-        60% 15%,
-        80% 10%,
-        75% 30%,
-        95% 35%,
-        80% 50%,
-        100% 60%,
-        75% 70%,
-        85% 90%,
-        60% 85%,
-        50% 100%,
-        40% 85%,
-        15% 90%,
-        25% 70%,
-        0% 60%,
-        20% 50%,
-        5% 35%,
-        25% 30%,
-        20% 10%,
-        40% 15%
-    );
-
-    z-index: -1;
+    height: auto;
 }
 
 </style>
@@ -288,32 +226,15 @@ st.write("""
 
 
 # ==========================================
-# 最初の小人
+# こんにちは小人
 # ==========================================
 
 if not st.session_state["kobito_shown"]:
 
     if kobito_intro:
 
-        st.markdown("""
-        <div class="kobito-box">
-
-            <div class="kobito-balloon">
-                こんにちは！<br>
-                ぼくが案内するよ！
-            </div>
-
-        </div>
-        """, unsafe_allow_html=True)
-
         st.markdown(
             f"""
-            <style>
-            .kobito-box img {{
-                width: 150px;
-            }}
-            </style>
-
             <div class="kobito-box">
 
                 <div class="kobito-balloon">
@@ -323,7 +244,7 @@ if not st.session_state["kobito_shown"]:
 
                 <img
                     src="data:image/png;base64,{kobito_intro}"
-                    width="150"
+                    alt="小人"
                 >
 
             </div>
@@ -335,7 +256,7 @@ if not st.session_state["kobito_shown"]:
 
 
 # ==========================================
-# ログインコード
+# ログイン
 # ==========================================
 
 st.subheader("ログインコードを入力してください")
@@ -351,26 +272,28 @@ input_password = st.text_input(
 
 
 # ==========================================
-# 決定ボタン
+# 決定
 # ==========================================
 
 if st.button("決定"):
 
-    # ------------------------------
+    # --------------------------------------
     # 入力チェック
-    # ------------------------------
+    # --------------------------------------
 
     if input_code.strip() == "":
+
         st.error("ログインコードを入力してください")
 
     elif input_password.strip() == "":
+
         st.error("パスワードを入力してください")
 
     else:
 
-        # ------------------------------
-        # Supabaseから検索
-        # ------------------------------
+        # --------------------------------------
+        # Supabaseから家族コードを検索
+        # --------------------------------------
 
         exists = (
             supabase
@@ -380,45 +303,42 @@ if st.button("決定"):
             .execute()
         )
 
-
-        # ==========================================
-        # 既存ユーザー
-        # ==========================================
+        # ======================================
+        # 既存の家族コード
+        # ======================================
 
         if exists.data:
 
             saved_password = exists.data[0].get("password")
 
-
-            # ------------------------------
-            # パスワード一致
-            # ------------------------------
+            # ----------------------------------
+            # パスワード正解
+            # ----------------------------------
 
             if saved_password == input_password:
 
-                st.success("ログインに成功しました")
-
                 st.session_state["family_code"] = input_code
 
-                # おかえり小人を表示するフラグ
+                # おかえり小人を表示
                 st.session_state["welcome_back"] = True
 
-                # 画面を再実行
+                st.success("ログインに成功しました")
+
+                # 画面を再読み込み
                 st.rerun()
 
-
-            # ------------------------------
-            # パスワード不一致
-            # ------------------------------
+            # ----------------------------------
+            # パスワード不正解
+            # ----------------------------------
 
             else:
 
                 st.error("パスワードが違います")
 
 
-        # ==========================================
+        # ======================================
         # 新規登録
-        # ==========================================
+        # ======================================
 
         else:
 
@@ -434,7 +354,6 @@ if st.button("決定"):
                 .execute()
             )
 
-
             if response.data is None:
 
                 st.error(
@@ -443,15 +362,16 @@ if st.button("決定"):
 
             else:
 
+                st.session_state["family_code"] = input_code
+
+                # 新規登録でもおかえりを表示
+                st.session_state["welcome_back"] = True
+
                 st.success(
                     f"ログインコード「{input_code}」を登録しました"
                 )
 
-                st.session_state["family_code"] = input_code
-
-                # 新規登録でも「おかえり」を表示
-                st.session_state["welcome_back"] = True
-
+                # 画面を再読み込み
                 st.rerun()
 
 
@@ -474,7 +394,7 @@ if st.session_state["welcome_back"]:
 
                 <img
                     src="data:image/png;base64,{kobito_intro}"
-                    width="150"
+                    alt="小人"
                 >
 
             </div>
@@ -482,12 +402,12 @@ if st.session_state["welcome_back"]:
             unsafe_allow_html=True
         )
 
-    # 一度表示したらフラグをOFF
+    # 一度だけ表示
     st.session_state["welcome_back"] = False
 
 
 # ==========================================
-# 現在のログインコード表示
+# 現在のログインコード
 # ==========================================
 
 if st.session_state.get("family_code"):
