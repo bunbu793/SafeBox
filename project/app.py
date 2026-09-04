@@ -2,10 +2,8 @@ import streamlit as st
 from supabase import create_client
 import requests
 import base64
-
-# ==========================================
-# ページ設定
-# ==========================================
+import json
+import os
 
 st.set_page_config(
     page_title="SafeBox Manager",
@@ -13,406 +11,187 @@ st.set_page_config(
     layout="centered"
 )
 
-# ==========================================
-# Supabase
-# ==========================================
-
 supabase = create_client(
     st.secrets["SUPABASE_URL"],
     st.secrets["SUPABASE_KEY"]
 )
 
-# ==========================================
-# 小人画像
-# ==========================================
-
-def get_base64_image_from_url(url):
-    response = requests.get(url)
-    response.raise_for_status()
-    return base64.b64encode(response.content).decode()
-
-
-KOBITO_URL = (
-    "https://raw.githubusercontent.com/bunbu793/"
-    "SafeBox/main/project/assets/kobito1.png"
-)
-
-try:
-    kobito_intro = get_base64_image_from_url(KOBITO_URL)
-except Exception:
-    kobito_intro = None
-
-
-# ==========================================
-# セッション状態
-# ==========================================
-
-if "kobito_shown" not in st.session_state:
-    st.session_state["kobito_shown"] = False
-
-if "welcome_back" not in st.session_state:
-    st.session_state["welcome_back"] = False
-
-if "family_code" not in st.session_state:
-    st.session_state["family_code"] = None
-
-
-# ==========================================
-# 小人CSS
-# ==========================================
-
+# 小人 & バースト吹き出し CSS
 st.markdown("""
 <style>
 
-/* ==========================================
-   こんにちは小人
-   ========================================== */
-
-@keyframes kobito-move {
-
-    0% {
-        right: -250px;
-        opacity: 0;
-    }
-
-    20% {
-        right: 40px;
-        opacity: 1;
-    }
-
-    80% {
-        right: 40px;
-        opacity: 1;
-    }
-
-    100% {
-        right: -250px;
-        opacity: 0;
-    }
+@keyframes kobito-alert {
+    0%   { right: -250px; opacity: 0; }
+    20%  { right: 40px; opacity: 1; }
+    80%  { right: 40px; opacity: 1; }
+    100% { right: -250px; opacity: 0; }
 }
 
-.kobito-box {
-
+.kobito-alert-box {
     position: fixed;
-
-    top: 300px;
+    top: 260px;
     right: -250px;
-
     z-index: 9999;
-
     display: flex;
     flex-direction: column;
     align-items: center;
-
-    animation: kobito-move 6s ease-in-out forwards;
+    animation: kobito-alert 6s ease-in-out forwards;
 }
 
-
-/* ==========================================
-   おかえり小人
-   ========================================== */
-
-@keyframes kobito-welcome {
-
-    0% {
-        right: -250px;
-        opacity: 0;
-    }
-
-    20% {
-        right: 40px;
-        opacity: 1;
-    }
-
-    80% {
-        right: 40px;
-        opacity: 1;
-    }
-
-    100% {
-        right: -250px;
-        opacity: 0;
-    }
-}
-
-.kobito-welcome-box {
-
-    position: fixed;
-
-    top: 300px;
-    right: -250px;
-
-    z-index: 9999;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    animation: kobito-welcome 6s ease-in-out forwards;
-}
-
-
-/* ==========================================
-   小人の吹き出し
-   ========================================== */
-
-.kobito-balloon,
-.kobito-welcome-balloon {
-
+/* バースト吹き出し */
+.burst-balloon {
+    --burst-color: #ff66aa; /* ←色変更できる */
+    position: relative;
     background: white;
-
-    border: 2px solid #333;
-
-    padding: 10px 18px;
-
-    border-radius: 10px;
-
-    margin-bottom: 10px;
-
-    font-weight: bold;
-
+    padding: 25px;
+    width: 230px;
     text-align: center;
-
-    white-space: nowrap;
+    font-weight: 700;
+    border-radius: 50%;
+    border: 4px solid #333;
+    box-shadow: 0 0 0 10px var(--burst-color);
 }
 
-
-/* ==========================================
-   小人画像
-   ========================================== */
-
-.kobito-box img,
-.kobito-welcome-box img {
-
-    display: block;
-
-    width: 150px;
-
-    height: auto;
+.burst-balloon:before {
+    content: "";
+    position: absolute;
+    top: -18px;
+    left: -18px;
+    right: -18px;
+    bottom: -18px;
+    background: var(--burst-color);
+    clip-path: polygon(
+        50% 0%, 60% 15%, 80% 10%, 75% 30%, 
+        95% 35%, 80% 50%, 100% 60%, 75% 70%, 
+        85% 90%, 60% 85%, 50% 100%, 40% 85%, 
+        15% 90%, 25% 70%, 0% 60%, 20% 50%, 
+        5% 35%, 25% 30%, 20% 10%, 40% 15%
+    );
+    z-index: -1;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-
-# ==========================================
-# タイトル
-# ==========================================
-
+#タイトル
 st.markdown("""
 <h1 translate="no">SafeBox Manager</h1>
-
 <h2>防災サポートアプリ</h2>
 """, unsafe_allow_html=True)
 
-
-# ==========================================
-# 説明文
-# ==========================================
-
+#説明文
 st.write("""
 ようこそ、SafeBox Manager へ。
 
 このアプリでは、
 
-- 備品管理
-- 賞味期限チェック
-- 災害情報
-- 避難所マップ
-- 家族連絡カード
+- 備品管理  
+- 賞味期限チェック  
+- 災害情報  
+- 避難所マップ  
+- 家族連絡カード  
 
 など、災害時に役立つ機能をまとめて利用できます。
 """)
 
+#小人を表示
+# フラグがなければ初期化
+if "kobito_shown" not in st.session_state:
+    st.session_state["kobito_shown"] = False
 
-# ==========================================
-# こんにちは小人
-# ==========================================
+# 小人を一度だけ表示
+if not st.session_state.kobito_shown:
 
-if not st.session_state["kobito_shown"]:
+    def get_base64_image_from_url(url):
+        response = requests.get(url)
+        return base64.b64encode(response.content).decode()
 
-    if kobito_intro:
+    kobito_intro = get_base64_image_from_url(
+            "https://raw.githubusercontent.com/bunbu793/SafeBox/main/project/assets/kobito1.png"
+            )
 
-        st.markdown(
-            f"""
-            <div class="kobito-box">
+    # CSS（アニメーション）
+    st.markdown("""
+    <style>
+    @keyframes kobito-move {
+        0%   { right: -200px; opacity: 0; }
+        20%  { right: 80px; opacity: 1; }
+        70%  { right: 80px; opacity: 1; }
+        100% { right: -200px; opacity: 0; }
+    }
+    .kobito-box {
+        position: fixed;
+        top: 300px;
+        right: -200px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        animation: kobito-move 6s ease-in-out forwards;
+    }
+    .kobito-balloon {
+        background:#fff;
+        border:2px solid #333;
+        padding:10px;
+        border-radius:10px;
+        margin-bottom:10px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-                <div class="kobito-balloon">
-                    こんにちは！<br>
-                    ぼくが案内するよ！
-                </div>
+    # 小人表示
+    st.markdown(f"""
+    <div class="kobito-box">
+        <div class="kobito-balloon">
+            こんにちは！<br>ぼくが案内するよ！
+        </div>
+        <img src="data:image/png;base64,{kobito_intro}" width="150">
+    </div>
+    """, unsafe_allow_html=True)
 
-                <img
-                    src="data:image/png;base64,{kobito_intro}"
-                    alt="小人"
-                >
+    # フラグを立てる（次回以降は表示しない）
+    st.session_state.kobito_shown = True
 
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    st.session_state["kobito_shown"] = True
-
-
-# ==========================================
-# ログイン
-# ==========================================
+#ログインコードの初期化＋新規作成＋読み込み
+if "family_codes" not in st.session_state:
+    st.session_state["family_codes"] = []
 
 st.subheader("ログインコードを入力してください")
 
-input_code = st.text_input(
-    "ログインコード"
-)
-
-input_password = st.text_input(
-    "パスワード",
-    type="password"
-)
-
-
-# ==========================================
-# 決定
-# ==========================================
+input_code = st.text_input("ログインコード")
+input_password = st.text_input("パスワード" ,type = "password")
 
 if st.button("決定"):
-
-    # --------------------------------------
-    # 入力チェック
-    # --------------------------------------
-
     if input_code.strip() == "":
-
         st.error("ログインコードを入力してください")
-
     elif input_password.strip() == "":
-
         st.error("パスワードを入力してください")
-
     else:
-
-        # --------------------------------------
-        # Supabaseから家族コードを検索
-        # --------------------------------------
-
-        exists = (
-            supabase
-            .table("families")
-            .select("*")
-            .eq("family_code", input_code)
-            .execute()
-        )
-
-        # ======================================
-        # 既存の家族コード
-        # ======================================
+        exists = supabase.table("families").select("*").eq("family_code", input_code).execute()
 
         if exists.data:
-
+            # 既存 → パスワードチェック
             saved_password = exists.data[0].get("password")
 
-            # ----------------------------------
-            # パスワード正解
-            # ----------------------------------
-
             if saved_password == input_password:
-
-                st.session_state["family_code"] = input_code
-
-                # おかえり小人を表示
-                st.session_state["welcome_back"] = True
-
                 st.success("ログインに成功しました")
-
-                # 画面を再読み込み
-                st.rerun()
-
-            # ----------------------------------
-            # パスワード不正解
-            # ----------------------------------
-
+                st.session_state["family_code"] = input_code
             else:
-
                 st.error("パスワードが違います")
-
-
-        # ======================================
-        # 新規登録
-        # ======================================
-
         else:
-
+            # 新規登録（コード＋パスワードを保存）
             data = {
                 "family_code": input_code,
                 "password": input_password
             }
-
-            response = (
-                supabase
-                .table("families")
-                .insert(data)
-                .execute()
-            )
+            response = supabase.table("families").insert(data).execute()
 
             if response.data is None:
-
-                st.error(
-                    "Supabase への保存に失敗しました"
-                )
-
+                st.error("Supabase への保存に失敗しました")
             else:
-
+                st.success(f"ログインコード「{input_code}」を登録しました")
                 st.session_state["family_code"] = input_code
 
-                # 新規登録でもおかえりを表示
-                st.session_state["welcome_back"] = True
-
-                st.success(
-                    f"ログインコード「{input_code}」を登録しました"
-                )
-
-                # 画面を再読み込み
-                st.rerun()
-
-
-# ==========================================
-# おかえり小人
-# ==========================================
-
-if st.session_state["welcome_back"]:
-
-    if kobito_intro:
-
-        st.markdown(
-            f"""
-            <div class="kobito-welcome-box">
-
-                <div class="kobito-welcome-balloon">
-                    おかえり！<br>
-                    今日もよろしくね！
-                </div>
-
-                <img
-                    src="data:image/png;base64,{kobito_intro}"
-                    alt="小人"
-                >
-
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    # 一度だけ表示
-    st.session_state["welcome_back"] = False
-
-
-# ==========================================
-# 現在のログインコード
-# ==========================================
-
-if st.session_state.get("family_code"):
-
-    st.info(
-        f"現在のログインコード："
-        f"{st.session_state['family_code']}"
-    )
+# 現在のログインコード表示
+if "family_code" in st.session_state:
+    st.info(f"現在のログインコード：{st.session_state['family_code']}")
