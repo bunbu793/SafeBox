@@ -16,6 +16,63 @@ supabase = create_client(
     st.secrets["SUPABASE_KEY"]
 )
 
+# 小人 & バースト吹き出し CSS
+st.markdown("""
+<style>
+
+@keyframes kobito-alert {
+    0%   { right: -250px; opacity: 0; }
+    20%  { right: 40px; opacity: 1; }
+    80%  { right: 40px; opacity: 1; }
+    100% { right: -250px; opacity: 0; }
+}
+
+.kobito-alert-box {
+    position: fixed;
+    top: 260px;
+    right: -250px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: kobito-alert 6s ease-in-out forwards;
+}
+
+/* バースト吹き出し */
+.burst-balloon {
+    --burst-color: #ff66aa; /* ←色変更できる */
+    position: relative;
+    background: white;
+    padding: 25px;
+    width: 230px;
+    text-align: center;
+    font-weight: 700;
+    border-radius: 50%;
+    border: 4px solid #333;
+    box-shadow: 0 0 0 10px var(--burst-color);
+}
+
+.burst-balloon:before {
+    content: "";
+    position: absolute;
+    top: -18px;
+    left: -18px;
+    right: -18px;
+    bottom: -18px;
+    background: var(--burst-color);
+    clip-path: polygon(
+        50% 0%, 60% 15%, 80% 10%, 75% 30%, 
+        95% 35%, 80% 50%, 100% 60%, 75% 70%, 
+        85% 90%, 60% 85%, 50% 100%, 40% 85%, 
+        15% 90%, 25% 70%, 0% 60%, 20% 50%, 
+        5% 35%, 25% 30%, 20% 10%, 40% 15%
+    );
+    z-index: -1;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 #タイトル
 st.markdown("""
 <h1 translate="no">SafeBox Manager</h1>
@@ -139,4 +196,38 @@ if st.button("決定"):
 if "family_code" in st.session_state:
     st.info(f"現在のログインコード：{st.session_state['family_code']}")
 
+# ログイン後：賞味期限チェック
+if "family_code" in st.session_state:
+
+    # データ取得
+    response = supabase.table("emergency_items").select("*").eq(
+        "family_code", st.session_state["family_code"]
+    ).execute()
+
+    items = response.data or []
+
+    # 期限切れチェック
+    expired_items = []
+    from datetime import date
+
+    for item in items:
+        try:
+            expiry = date.fromisoformat(item["expiry_date"])
+            if expiry < date.today():
+                expired_items.append(item["name"])
+        except:
+            pass
+
+    # 小人＋バースト吹き出し表示
+    if expired_items:
+        names = "、".join(expired_items)
+
+        st.markdown(f"""
+        <div class="kobito-alert-box">
+            <div class="burst-balloon" style="--burst-color:#ff66aa;">
+                {names}<br>しょうみきげん切れだよ！
+            </div>
+            <img src="data:image/png;base64,{kobito_intro}" width="150">
+        </div>
+        """, unsafe_allow_html=True)
 
