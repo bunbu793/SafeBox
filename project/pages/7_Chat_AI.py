@@ -1,6 +1,6 @@
 import streamlit as st
 
-from kobito_helper import KOBITO_IMAGES, load_kobito_avatar
+from kobito_helper import KOBITO_IMAGES, get_base64_image_from_url
 
 # ==================================================
 # ページ設定
@@ -13,32 +13,153 @@ st.set_page_config(
 )
 
 # ==================================================
-# CSS
+# 小人画像（base64化してHTMLに直接埋め込む）
 # ==================================================
 
-st.markdown("""
+kobito_b64 = get_base64_image_from_url(KOBITO_IMAGES["chat"])
+
+# ==================================================
+# CSS（全体デザイン刷新）
+# ==================================================
+
+st.markdown(f"""
 <style>
-.block-container{
-    padding-top:2rem;
-}
-.stButton>button{
+
+.stApp {{
+    background: linear-gradient(180deg, #fff8f0 0%, #fef1f1 100%);
+}}
+
+.block-container{{
+    padding-top:1.5rem;
+    max-width: 900px;
+}}
+
+/* ヘッダーバナー */
+.chat-header {{
+    background: linear-gradient(135deg, #ff9a76, #ff6f91);
+    border-radius: 20px;
+    padding: 22px 28px;
+    color: white;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 16px rgba(255,111,145,0.3);
+}}
+.chat-header h1 {{
+    margin: 0;
+    font-size: 26px;
+}}
+.chat-header p {{
+    margin: 6px 0 0 0;
+    opacity: 0.9;
+    font-size: 14px;
+}}
+
+/* カテゴリボタン（大きめカード風） */
+.stButton>button{{
     width:100%;
-    height:55px;
-    border-radius:12px;
-    font-weight:bold;
+    height:64px;
+    border-radius:16px;
+    font-weight:700;
     font-size:16px;
-}
-.stChatMessage{
-    border-radius:15px;
-}
+    border: none;
+    background: white;
+    color: #444;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    transition: 0.15s;
+}}
+.stButton>button:hover{{
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    background: #fff0eb;
+}}
+
+/* 吹き出しチャット行 */
+.chat-row {{
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 22px;
+}}
+.chat-row.user {{
+    flex-direction: row-reverse;
+}}
+
+.chat-avatar {{
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.15));
+}}
+
+.chat-bubble {{
+    position: relative;
+    background: white;
+    border-radius: 20px;
+    padding: 18px 22px;
+    max-width: 75%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    font-size: 15.5px;
+    line-height: 1.7;
+}}
+
+.chat-bubble.assistant::before {{
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 24px;
+    border-width: 10px 12px 10px 0;
+    border-style: solid;
+    border-color: transparent white transparent transparent;
+}}
+
+.chat-bubble.user {{
+    background: #ff6f91;
+    color: white;
+}}
+.chat-bubble.user::before {{
+    content: "";
+    position: absolute;
+    right: -10px;
+    top: 24px;
+    border-width: 10px 0 10px 12px;
+    border-style: solid;
+    border-color: transparent transparent transparent #ff6f91;
+}}
+
+.chat-bubble h2 {{
+    font-size: 19px;
+    margin-top: 0;
+}}
+.chat-bubble h3 {{
+    font-size: 15.5px;
+    color: #ff6f91;
+    margin-bottom: 4px;
+}}
+
+/* 詳細・戻るボタンを横並びのピル型に */
+.detail-btn-row .stButton>button {{
+    height: 48px;
+    border-radius: 24px;
+    font-size: 14px;
+}}
+
 </style>
 """, unsafe_allow_html=True)
 
-# ==================================================
-# 小人アイコン（アシスタントのアバターとして使用）
-# ==================================================
-
-kobito_avatar = load_kobito_avatar(KOBITO_IMAGES["chat"])
+def render_message(role, content):
+    if role == "assistant":
+        st.markdown(f"""
+        <div class="chat-row assistant">
+            <img class="chat-avatar" src="data:image/png;base64,{kobito_b64}">
+            <div class="chat-bubble assistant">{content}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"""
+        <div class="chat-row user">
+            <div class="chat-bubble user">{content}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ==================================================
 # セッション
@@ -171,13 +292,22 @@ responses = {
 }
 
 # ==================================================
+# ヘッダー
+# ==================================================
+
+st.markdown("""
+<div class="chat-header">
+    <h1>🏠 SafeBox 防災コンシェルジュ</h1>
+    <p>気になることを選んで、防災の知恵を聞いてみよう</p>
+</div>
+""", unsafe_allow_html=True)
+
+# ==================================================
 # チャット履歴表示
 # ==================================================
 
 for msg in st.session_state.messages:
-    avatar = kobito_avatar if msg["role"] == "assistant" else None
-    with st.chat_message(msg["role"], avatar=avatar):
-        st.markdown(msg["content"])
+    render_message(msg["role"], msg["content"])
 
 # ==================================================
 # 初回メッセージ
@@ -186,15 +316,12 @@ for msg in st.session_state.messages:
 if not st.session_state.welcome:
     st.session_state.messages.append({
         "role": "assistant",
-        "content": """## 👋 ようこそ！
-
-私は **SafeBox 防災コンシェルジュ** です。
+        "content": """<h2>👋 ようこそ！</h2>
+私は <b>SafeBox 防災コンシェルジュ</b> です。<br>
 専門家ではありませんが、あなたの状況に合わせて
-できる限りの防災知識をお伝えします。
-一緒に安全を守る方法を考えていきましょう。
-
-相談したいカテゴリを選んでください。
-"""
+できる限りの防災知識をお伝えします。<br>
+一緒に安全を守る方法を考えていきましょう。<br><br>
+相談したいカテゴリを選んでください。"""
     })
     st.session_state.welcome = True
     st.rerun()
@@ -205,36 +332,35 @@ if not st.session_state.welcome:
 
 if st.session_state.category is None:
 
-    with st.chat_message("assistant", avatar=kobito_avatar):
-        st.write("📂 カテゴリを選択してください")
+    render_message("assistant", "📂 カテゴリを選択してください")
 
-        col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3)
 
-        if col1.button("🌍 地震"):
-            st.session_state.category = "地震"
-            st.rerun()
+    if col1.button("🌍 地震"):
+        st.session_state.category = "地震"
+        st.rerun()
 
-        if col2.button("📦 備蓄"):
-            st.session_state.category = "備蓄"
-            st.rerun()
+    if col2.button("📦 備蓄"):
+        st.session_state.category = "備蓄"
+        st.rerun()
 
-        if col3.button("🏫 避難"):
-            st.session_state.category = "避難"
-            st.rerun()
+    if col3.button("🏫 避難"):
+        st.session_state.category = "避難"
+        st.rerun()
 
-        col4, col5, col6 = st.columns(3)
+    col4, col5, col6 = st.columns(3)
 
-        if col4.button("👨‍👩‍👧 家族"):
-            st.session_state.category = "家族"
-            st.rerun()
+    if col4.button("👨‍👩‍👧 家族"):
+        st.session_state.category = "家族"
+        st.rerun()
 
-        if col5.button("⚡ 停電・断水"):
-            st.session_state.category = "生活"
-            st.rerun()
+    if col5.button("⚡ 停電・断水"):
+        st.session_state.category = "生活"
+        st.rerun()
 
-        if col6.button("🧠 メンタル"):
-            st.session_state.category = "メンタル"
-            st.rerun()
+    if col6.button("🧠 メンタル"):
+        st.session_state.category = "メンタル"
+        st.rerun()
 
 # ==================================================
 # カテゴリが選ばれたら回答（基本情報）
@@ -244,20 +370,16 @@ if st.session_state.category:
 
     data = responses[st.session_state.category]
 
-    actions_text = "\n- ".join(data["actions"])
+    actions_html = "".join([f"・{a}<br>" for a in data["actions"]])
 
-    answer = f"""## {data['title']}
-
-### ① 結論
+    answer = f"""<h2>{data['title']}</h2>
+<h3>① 結論</h3>
 {data['conclusion']}
-
-### ② 理由
+<h3>② 理由</h3>
 {data['reason']}
-
-### ③ 具体的な行動
-- {actions_text}
-
-### ④ アドバイス
+<h3>③ 具体的な行動</h3>
+{actions_html}
+<h3>④ アドバイス</h3>
 {data['tip']}
 """
 
@@ -277,40 +399,37 @@ if st.session_state.category:
 
 if st.session_state.show_detail_button:
 
-    with st.chat_message("assistant", avatar=kobito_avatar):
+    st.markdown('<div class="detail-btn-row">', unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
 
-        col1, col2 = st.columns(2)
+    if col1.button("🔍 もっと詳しく"):
 
-        if col1.button("🔍 もっと詳しく"):
+        data = responses[st.session_state.show_detail_button]
+        detail = data["detail"]
 
-            data = responses[st.session_state.show_detail_button]
-            detail = data["detail"]
+        detail_actions_html = "".join([f"・{a}<br>" for a in detail["actions"]])
 
-            detail_actions_text = "\n- ".join(detail["actions"])
-
-            detail_answer = f"""## {data['title']}（もっと詳しく）
-
-### 追加の結論
+        detail_answer = f"""<h2>{data['title']}（もっと詳しく）</h2>
+<h3>追加の結論</h3>
 {detail['conclusion']}
-
-### 追加の行動
-- {detail_actions_text}
-
-### 追加のアドバイス
+<h3>追加の行動</h3>
+{detail_actions_html}
+<h3>追加のアドバイス</h3>
 {detail['tip']}
 """
 
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": detail_answer
-            })
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": detail_answer
+        })
 
-            st.session_state.show_detail_button = None
-            st.rerun()
+        st.session_state.show_detail_button = None
+        st.rerun()
 
-        if col2.button("📂 カテゴリに戻る"):
-            st.session_state.show_detail_button = None
-            st.rerun()
+    if col2.button("📂 カテゴリに戻る"):
+        st.session_state.show_detail_button = None
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ==================================================
 # 履歴削除
