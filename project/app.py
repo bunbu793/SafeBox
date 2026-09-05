@@ -122,11 +122,11 @@ if st.button("決定"):
                 status = get_family_status(input_code)
 
                 if status == "danger":
-                    welcome_message = "おかえりなさい！<br>大変です、期限切れのものがあります！"
+                    welcome_message = "おかえりなさい！<br>大変です、防災グッズに期限切れのものがあります！"
                 elif status == "warning":
-                    welcome_message = "おかえりなさい！<br>もうすぐ期限のものがあります、注意して！"
+                    welcome_message = "おかえりなさい！<br>防災グッズにもうすぐ期限のものがあります、注意して！"
                 elif status == "safe":
-                    welcome_message = "おかえりなさい！<br>今は安心だね！"
+                    welcome_message = "おかえりなさい！<br>防災グッズは今は安心だね！"
                 else:
                     welcome_message = "おかえりなさい！<br>まずは防災グッズを登録してみよう！"
 

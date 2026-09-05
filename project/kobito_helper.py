@@ -20,7 +20,7 @@ KOBITO_IMAGES = {
     "safety":      f"{BASE_URL}/kobito_brown.png",
     "quiz":        f"{BASE_URL}/kobito_gray.png",
     "brochure":    f"{BASE_URL}/kobito_navy.png",
-    "settings":    f"{BASE_URL}/kobito_violet.png",
+    "settings":    f"{BASE_URL}/kobito_liteblue.png",
 }
 
 # 後方互換用
@@ -42,7 +42,8 @@ PAGE_THEMES = {
     "safety":      {"header": ("#6d4c41", "#a1887f"), "bg": ("#f8f4f2", "#efebe9")},
     "quiz":        {"header": ("#616161", "#9e9e9e"), "bg": ("#f7f7f7", "#eeeeee")},
     "brochure":    {"header": ("#1a237e", "#3949ab"), "bg": ("#f0f1fb", "#e8eaf6")},
-    "settings":    {"header": ("#7e57c2", "#b39ddb"), "bg": ("#f6f3fb", "#ede7f6")},
+    "settings":    {"header": ("#81c7e8", "#b3e5fc"),"bg": ("#f0fbff", "#e1f5fe")
+    },
 }
 
 def apply_page_theme(page_key, title, subtitle=""):
