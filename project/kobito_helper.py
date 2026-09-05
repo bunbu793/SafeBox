@@ -3,6 +3,7 @@ import requests
 import base64
 from io import BytesIO
 from PIL import Image
+import time
 
 BASE_URL = "https://raw.githubusercontent.com/bunbu793/SafeBox/main/project/assets"
 
@@ -156,11 +157,21 @@ def get_base64_image_from_url(url):
     response = requests.get(url)
     return base64.b64encode(response.content).decode()
 
-def show_kobito_popup(image_url, message, session_key=None):
+def show_kobito_popup(image_url, message, session_key, cooldown_seconds=4):
     """
-    session_key は使わなくなったが、
-    既存の呼び出し箇所を書き換えずに済むよう引数だけ残してある
+    直前の表示から cooldown_seconds 秒以内であれば、
+    重なり表示を防ぐためスキップする
     """
+    now = time.time()
+    last_shown_key = f"{session_key}_last_shown"
+
+    last_shown = st.session_state.get(last_shown_key, 0)
+
+    if now - last_shown < cooldown_seconds:
+        return  # 直前に表示したばかりなので今回はスキップ
+
+    st.session_state[last_shown_key] = now
+
     img_b64 = get_base64_image_from_url(image_url)
     st.markdown(f"""
     <div class="kobito-box">
@@ -168,18 +179,6 @@ def show_kobito_popup(image_url, message, session_key=None):
         <img src="data:image/png;base64,{img_b64}" width="150">
     </div>
     """, unsafe_allow_html=True)
-    if session_key not in st.session_state:
-        st.session_state[session_key] = False
-
-    if not st.session_state[session_key]:
-        img_b64 = get_base64_image_from_url(image_url)
-        st.markdown(f"""
-        <div class="kobito-box">
-            <div class="kobito-balloon">{message}</div>
-            <img src="data:image/png;base64,{img_b64}" width="150">
-        </div>
-        """, unsafe_allow_html=True)
-        st.session_state[session_key] = True
 
 @st.cache_data
 def load_kobito_avatar(image_url):
