@@ -20,7 +20,7 @@ KOBITO_IMAGES = {
     "safety":      f"{BASE_URL}/kobito_brown.png",
     "quiz":        f"{BASE_URL}/kobito_gray.png",
     "brochure":    f"{BASE_URL}/kobito_navy.png",
-    "settings":    f"{BASE_URL}/kobito_liteblue.png",
+    "settings":    f"{BASE_URL}/kobito_lightblue.png",
 }
 
 # 後方互換用
