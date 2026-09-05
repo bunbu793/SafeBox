@@ -1,5 +1,6 @@
 import streamlit as st
-
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from kobito_helper import KOBITO_IMAGES, apply_page_theme, show_kobito_popup
 
 st.set_page_config(page_title="自治体別防災パンフレット", page_icon="📄")

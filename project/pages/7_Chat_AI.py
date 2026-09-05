@@ -1,5 +1,6 @@
 import streamlit as st
-
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from kobito_helper import KOBITO_IMAGES, get_base64_image_from_url
 
 # ==================================================

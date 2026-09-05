@@ -5,7 +5,8 @@ import pandas as pd
 import math
 import json
 from supabase import create_client
-
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from kobito_helper import KOBITO_IMAGES, apply_page_theme, show_kobito_popup
 
 # =========================================================
