@@ -1,9 +1,6 @@
 import streamlit as st
-import requests
-from io import BytesIO
-from PIL import Image
 
-from kobito_helper import KOBITO_IMAGE_URL
+from kobito_helper import KOBITO_IMAGES, load_kobito_avatar
 
 # ==================================================
 # ページ設定
@@ -41,12 +38,7 @@ st.markdown("""
 # 小人アイコン（アシスタントのアバターとして使用）
 # ==================================================
 
-@st.cache_data
-def load_kobito_avatar():
-    response = requests.get(KOBITO_IMAGE_URL)
-    return Image.open(BytesIO(response.content))
-
-kobito_avatar = load_kobito_avatar()
+kobito_avatar = load_kobito_avatar(KOBITO_IMAGES["chat"])
 
 # ==================================================
 # セッション

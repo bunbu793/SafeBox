@@ -6,6 +6,10 @@ import streamlit.components.v1 as components
 from uuid import uuid4
 from supabase import create_client
 
+from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+
+inject_kobito_css()
+
 #============================
 #streamlitのセッションステートを初期化
 #===========================
@@ -141,6 +145,12 @@ if "user_id" not in st.session_state:
             st.rerun()
 
     st.stop()
+
+show_kobito_popup(
+    KOBITO_IMAGES["quiz"],
+    "クイズに挑戦してランクアップしよう！",
+    "kobito_quiz_shown"
+)
 
 # ============================
 # ログイン後

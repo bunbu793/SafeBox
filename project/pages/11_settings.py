@@ -1,13 +1,17 @@
 import streamlit as st
 from supabase import create_client
 
+from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+
 # Supabase 初期化
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
-st.title("SafeBox Manager - 安否確認")
-st.write("家族の安否確認を行うためのページです。メンバーの追加や管理ができます。")
+inject_kobito_css()
+
+st.title("SafeBox Manager - 設定")
+st.write("家族メンバーの追加や管理ができます。")
 
 # ログインチェック
 if "family_code" not in st.session_state:
@@ -21,6 +25,12 @@ response = supabase.table("family_profiles").select("*").eq("family_code", famil
 family_data = response.data[0] if response.data else {}
 
 st.info(f"ログイン中：{family_code}")
+
+show_kobito_popup(
+    KOBITO_IMAGES["settings"],
+    "家族の追加や削除はここでできるよ！",
+    "kobito_settings_shown"
+)
 
 # ============================
 # 家族の名前登録

@@ -6,6 +6,8 @@ import math
 import json
 from supabase import create_client
 
+from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+
 # =========================================================
 # ページ設定
 # =========================================================
@@ -15,6 +17,8 @@ st.set_page_config(
     page_icon="🛒",
     layout="centered"
 )
+
+inject_kobito_css()
 
 # =========================================================
 # APIキー
@@ -219,6 +223,12 @@ family_code = st.session_state["family_code"]
 
 st.success(
     f"ログイン中：{family_code}"
+)
+
+show_kobito_popup(
+    KOBITO_IMAGES["shopping"],
+    "足りないものは近くのお店で探そう！",
+    "kobito_shopping_shown"
 )
 
 # =========================================================

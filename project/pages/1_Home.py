@@ -1,6 +1,10 @@
 import streamlit as st
 
+from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+
 st.title("SafeBox Manager - Home")
+
+inject_kobito_css()
 
 # ログインチェック
 if "family_code" not in st.session_state:
@@ -8,6 +12,12 @@ if "family_code" not in st.session_state:
     st.stop()
 
 st.success(f"ログイン中：{st.session_state['family_code']}")
+
+show_kobito_popup(
+    KOBITO_IMAGES["home"],
+    "メニューから使いたい機能を選んでね！",
+    "kobito_home_shown"
+)
 
 st.subheader("メニュー")
 

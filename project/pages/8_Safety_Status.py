@@ -2,10 +2,14 @@ import streamlit as st
 import json
 from supabase import create_client, Client
 
+from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+
 # Supabase 初期化
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase: Client = create_client(url, key)
+
+inject_kobito_css()
 
 st.title("SafeBox Manager - 安否確認")
 
@@ -18,6 +22,12 @@ if "family_code" not in st.session_state:
     st.stop()
 
 st.info(f"ログイン中：{family_code}")
+
+show_kobito_popup(
+    KOBITO_IMAGES["safety"],
+    "みんなの安否状況を確認しよう！",
+    "kobito_safety_shown"
+)
 
 # 家族一覧取得
 members = supabase.table("family_members").select("*").eq("family_code", family_code).execute()

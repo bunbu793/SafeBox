@@ -1,6 +1,8 @@
 import streamlit as st
 from supabase import create_client
 
+from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+
 # =========================================================
 # Supabase 接続
 # =========================================================
@@ -20,6 +22,8 @@ st.set_page_config(
     layout="centered"
 )
 
+inject_kobito_css()
+
 # =========================================================
 # ログインチェック
 # =========================================================
@@ -29,6 +33,12 @@ if "family_code" not in st.session_state:
     st.stop()
 
 family_code = st.session_state["family_code"]
+
+show_kobito_popup(
+    KOBITO_IMAGES["family"],
+    "家族みんなの名前を登録しておこう！",
+    "kobito_family_shown"
+)
 
 # =========================================================
 # 編集モード

@@ -2,7 +2,7 @@ import streamlit as st
 from supabase import create_client
 from datetime import date
 
-from kobito_helper import inject_kobito_css, show_kobito_popup, KOBITO_IMAGE_URL
+from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
 
 # =========================================================
 # Supabase接続
@@ -364,7 +364,7 @@ if items:  # 何か登録されている場合のみ
     status_key = f"kobito_status_{danger_count}_{warning_count}_{caution_count}"
 
     show_kobito_popup(
-        KOBITO_IMAGE_URL,
+        KOBITO_IMAGES["items"],
         kobito_message,
         status_key
     )
@@ -605,4 +605,77 @@ else:
                 )
 
                 st.markdown(
-                    f'<div class="info-value">')
+                    f'<div class="info-value">'
+                    f'{item["quantity"]}'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+                st.markdown(
+                    '<div class="info-title">保管場所</div>',
+                    unsafe_allow_html=True
+                )
+
+                st.write(
+                    item["location"] or "未登録"
+                )
+
+            # -------------------------------------------------
+            # メモ
+            # -------------------------------------------------
+
+            if item["memo"]:
+
+                st.markdown(
+                    f"""
+                    <div class="memo-box">
+                        <b>📝 メモ</b><br>
+                        {item["memo"]}
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            # -------------------------------------------------
+            # 削除
+            # -------------------------------------------------
+
+            delete_col1, delete_col2 = st.columns([4, 1])
+
+            with delete_col2:
+
+                if st.button(
+                    "削除",
+                    key=f"delete_{item['id']}",
+                    use_container_width=True
+                ):
+
+                    try:
+
+                        (
+                            supabase
+                            .table("emergency_items")
+                            .delete()
+                            .eq("id", item["id"])
+                            .eq("family_code", family_code)
+                            .execute()
+                        )
+
+                        st.success("削除しました")
+                        st.rerun()
+
+                    except Exception as e:
+
+                        st.error(
+                            f"削除に失敗しました：{e}"
+                        )
+
+    # -------------------------------------------------
+    # 検索結果なし
+    # -------------------------------------------------
+
+    if shown_count == 0:
+
+        st.info(
+            "条件に一致する防災グッズがありません。"
+        )

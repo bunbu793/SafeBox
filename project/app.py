@@ -5,7 +5,7 @@ import json
 import os
 
 from kobito_helper import (
-    KOBITO_IMAGE_URL,
+    KOBITO_IMAGES,
     inject_kobito_css,
     show_kobito_popup
 )
@@ -103,7 +103,7 @@ st.write("""
 
 # ページ読み込み時の「こんにちは」（1回だけ）
 show_kobito_popup(
-    KOBITO_IMAGE_URL,
+    KOBITO_IMAGES["login"],
     "こんにちは！<br>ぼくが案内するよ！",
     "kobito_shown"
 )
@@ -192,7 +192,7 @@ if st.button("決定"):
                     welcome_message = "おかえりなさい！<br>まずは防災グッズを登録してみよう！"
 
                 show_kobito_popup(
-                    KOBITO_IMAGE_URL,
+                    KOBITO_IMAGES["login"],
                     welcome_message,
                     "kobito_welcome_shown"
                 )
@@ -214,7 +214,7 @@ if st.button("決定"):
 
                 # 新規登録時の「ようこそ」
                 show_kobito_popup(
-                    KOBITO_IMAGE_URL,
+                    KOBITO_IMAGES["login"],
                     "ようこそ！<br>登録ありがとう！",
                     "kobito_register_shown"
                 )
