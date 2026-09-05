@@ -156,7 +156,18 @@ def get_base64_image_from_url(url):
     response = requests.get(url)
     return base64.b64encode(response.content).decode()
 
-def show_kobito_popup(image_url, message, session_key):
+def show_kobito_popup(image_url, message, session_key=None):
+    """
+    session_key は使わなくなったが、
+    既存の呼び出し箇所を書き換えずに済むよう引数だけ残してある
+    """
+    img_b64 = get_base64_image_from_url(image_url)
+    st.markdown(f"""
+    <div class="kobito-box">
+        <div class="kobito-balloon">{message}</div>
+        <img src="data:image/png;base64,{img_b64}" width="150">
+    </div>
+    """, unsafe_allow_html=True)
     if session_key not in st.session_state:
         st.session_state[session_key] = False
 
