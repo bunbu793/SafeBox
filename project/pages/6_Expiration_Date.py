@@ -2,7 +2,7 @@ import streamlit as st
 from supabase import create_client
 from datetime import date
 
-from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+from kobito_helper import KOBITO_IMAGES, apply_page_theme, show_kobito_popup
 
 # =========================================================
 # Supabase接続
@@ -24,32 +24,12 @@ st.set_page_config(
 )
 
 # =========================================================
-# CSS
+# 追加CSS（このページ特有のスタイル）
 # =========================================================
-
-inject_kobito_css()
 
 st.markdown(
     """
     <style>
-
-    .main {
-        padding-top: 20px;
-    }
-
-    .page-title {
-        font-size: 36px;
-        font-weight: 700;
-        margin-bottom: 5px;
-    }
-
-    .page-description {
-        color: #666;
-        font-size: 16px;
-        margin-bottom: 25px;
-    }
-
-    /* 状態ラベル */
     .status-label {
         display: inline-block;
         padding: 6px 18px;
@@ -59,8 +39,6 @@ st.markdown(
         font-weight: 700;
         margin: 8px 0 10px 0;
     }
-
-    /* 状態を大きく表示するバー */
     .status-box {
         width: 100%;
         padding: 12px;
@@ -72,25 +50,21 @@ st.markdown(
         margin-bottom: 18px;
         box-sizing: border-box;
     }
-
     .item-title {
         font-size: 24px;
         font-weight: 700;
         margin-bottom: 3px;
     }
-
     .info-title {
         font-size: 14px;
         color: #666;
         margin-bottom: 2px;
     }
-
     .info-value {
         font-size: 17px;
         font-weight: 600;
         margin-bottom: 10px;
     }
-
     .memo-box {
         background-color: #f5f5f5;
         border-radius: 8px;
@@ -98,25 +72,8 @@ st.markdown(
         margin-top: 10px;
         margin-bottom: 12px;
     }
-
     </style>
     """,
-    unsafe_allow_html=True
-)
-
-# =========================================================
-# タイトル
-# =========================================================
-
-st.markdown(
-    '<div class="page-title">🧰 防災グッズ管理</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    '<div class="page-description">'
-    '非常食・保存水・乾電池・防災用品などの期限をまとめて管理できます。'
-    '</div>',
     unsafe_allow_html=True
 )
 
@@ -130,51 +87,29 @@ if "family_code" not in st.session_state:
 
 family_code = st.session_state["family_code"]
 
+apply_page_theme(
+    "items",
+    "🧰 防災グッズ管理",
+    "非常食・保存水・乾電池などの期限をまとめて管理できます"
+)
+
 # =========================================================
 # 状態判定
 # =========================================================
 
 def get_status(expiry_date):
-    """
-    期限までの日数によって
-    安全 / 注意 / 警戒 / 危険
-    を判定する
-    """
 
     today = date.today()
     days_left = (expiry_date - today).days
 
-    # 期限切れ
     if days_left < 0:
-        return {
-            "status": "危険",
-            "color": "#f44336",
-            "days": days_left
-        }
-
-    # 30日以内
+        return {"status": "危険", "color": "#f44336", "days": days_left}
     elif days_left <= 30:
-        return {
-            "status": "警戒",
-            "color": "#ff9800",
-            "days": days_left
-        }
-
-    # 90日以内
+        return {"status": "警戒", "color": "#ff9800", "days": days_left}
     elif days_left <= 90:
-        return {
-            "status": "注意",
-            "color": "#fbc02d",
-            "days": days_left
-        }
-
-    # 91日以上
+        return {"status": "注意", "color": "#fbc02d", "days": days_left}
     else:
-        return {
-            "status": "安全",
-            "color": "#43a047",
-            "days": days_left
-        }
+        return {"status": "安全", "color": "#43a047", "days": days_left}
 
 
 # =========================================================
@@ -240,10 +175,6 @@ with st.form("add_item_form"):
         "登録する",
         use_container_width=True
     )
-
-# =========================================================
-# 登録処理
-# =========================================================
 
 if submitted:
 
@@ -333,13 +264,10 @@ for item in items:
 
         if result["status"] == "危険":
             danger_count += 1
-
         elif result["status"] == "警戒":
             warning_count += 1
-
         elif result["status"] == "注意":
             caution_count += 1
-
         else:
             safe_count += 1
 
@@ -347,11 +275,7 @@ for item in items:
         pass
 
 
-# =========================================================
-# 小人からのひとこと（在庫状況に応じて）
-# =========================================================
-
-if items:  # 何か登録されている場合のみ
+if items:
 
     if danger_count > 0:
         kobito_message = "大変です！<br>期限切れのものがあります！<br>今すぐ確認してください！"
@@ -360,7 +284,6 @@ if items:  # 何か登録されている場合のみ
     else:
         kobito_message = "今は期限切れの心配はありません。<br>安心してください！"
 
-    # 件数の組み合わせが変わるたびに再表示される
     status_key = f"kobito_status_{danger_count}_{warning_count}_{caution_count}"
 
     show_kobito_popup(
@@ -381,28 +304,16 @@ st.subheader("📊 期限状況")
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.metric(
-        "危険",
-        f"{danger_count} 件"
-    )
+    st.metric("危険", f"{danger_count} 件")
 
 with col2:
-    st.metric(
-        "警戒",
-        f"{warning_count} 件"
-    )
+    st.metric("警戒", f"{warning_count} 件")
 
 with col3:
-    st.metric(
-        "注意",
-        f"{caution_count} 件"
-    )
+    st.metric("注意", f"{caution_count} 件")
 
 with col4:
-    st.metric(
-        "安全",
-        f"{safe_count} 件"
-    )
+    st.metric("安全", f"{safe_count} 件")
 
 
 # =========================================================
@@ -417,13 +328,7 @@ with filter_col1:
 
     filter_status = st.selectbox(
         "状態",
-        [
-            "すべて",
-            "危険",
-            "警戒",
-            "注意",
-            "安全"
-        ]
+        ["すべて", "危険", "警戒", "注意", "安全"]
     )
 
 with filter_col2:
@@ -467,10 +372,6 @@ else:
         color = result["color"]
         days_left = result["days"]
 
-        # -------------------------------------------------
-        # フィルター
-        # -------------------------------------------------
-
         if filter_status != "すべて":
 
             if status != filter_status:
@@ -483,21 +384,12 @@ else:
 
         shown_count += 1
 
-        # -------------------------------------------------
-        # 商品カード
-        # -------------------------------------------------
-
         with st.container(border=True):
 
-            # 商品名
             st.markdown(
                 f'<div class="item-title">{item["name"]}</div>',
                 unsafe_allow_html=True
             )
-
-            # -------------------------------------------------
-            # 左上の小さいラベル
-            # -------------------------------------------------
 
             label_text = f"{item['expiry_type']}"
 
@@ -508,121 +400,49 @@ else:
 
             st.markdown(
                 f"""
-                <div
-                    class="status-label"
-                    style="background-color:{color};"
-                >
+                <div class="status-label" style="background-color:{color};">
                     {label_text}
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
-            # -------------------------------------------------
-            # 大きな状態バー
-            # -------------------------------------------------
-
             st.markdown(
                 f"""
-                <div
-                    class="status-box"
-                    style="background-color:{color};"
-                >
+                <div class="status-box" style="background-color:{color};">
                     {status}
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
-            # -------------------------------------------------
-            # 情報
-            # -------------------------------------------------
-
             col1, col2 = st.columns(2)
 
             with col1:
 
-                st.markdown(
-                    '<div class="info-title">期限の種類</div>',
-                    unsafe_allow_html=True
-                )
+                st.markdown('<div class="info-title">期限の種類</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="info-value">{item["expiry_type"]}</div>', unsafe_allow_html=True)
 
-                st.markdown(
-                    f'<div class="info-value">'
-                    f'{item["expiry_type"]}'
-                    f'</div>',
-                    unsafe_allow_html=True
-                )
+                st.markdown('<div class="info-title">期限</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="info-value">{item["expiry_date"]}</div>', unsafe_allow_html=True)
 
-                st.markdown(
-                    '<div class="info-title">期限</div>',
-                    unsafe_allow_html=True
-                )
-
-                st.markdown(
-                    f'<div class="info-value">'
-                    f'{item["expiry_date"]}'
-                    f'</div>',
-                    unsafe_allow_html=True
-                )
-
-                # 残り日数
                 if days_left < 0:
-
-                    st.error(
-                        f"{abs(days_left)} 日前に期限切れです"
-                    )
-
+                    st.error(f"{abs(days_left)} 日前に期限切れです")
                 elif days_left == 0:
-
-                    st.warning(
-                        "今日が期限です"
-                    )
-
+                    st.warning("今日が期限です")
                 else:
-
-                    st.write(
-                        f"あと **{days_left} 日**"
-                    )
+                    st.write(f"あと **{days_left} 日**")
 
             with col2:
 
-                st.markdown(
-                    '<div class="info-title">カテゴリ</div>',
-                    unsafe_allow_html=True
-                )
+                st.markdown('<div class="info-title">カテゴリ</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="info-value">{item["category"]}</div>', unsafe_allow_html=True)
 
-                st.markdown(
-                    f'<div class="info-value">'
-                    f'{item["category"]}'
-                    f'</div>',
-                    unsafe_allow_html=True
-                )
+                st.markdown('<div class="info-title">数量</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="info-value">{item["quantity"]}</div>', unsafe_allow_html=True)
 
-                st.markdown(
-                    '<div class="info-title">数量</div>',
-                    unsafe_allow_html=True
-                )
-
-                st.markdown(
-                    f'<div class="info-value">'
-                    f'{item["quantity"]}'
-                    f'</div>',
-                    unsafe_allow_html=True
-                )
-
-                st.markdown(
-                    '<div class="info-title">保管場所</div>',
-                    unsafe_allow_html=True
-                )
-
-                st.write(
-                    item["location"] or "未登録"
-                )
-
-            # -------------------------------------------------
-            # メモ
-            # -------------------------------------------------
+                st.markdown('<div class="info-title">保管場所</div>', unsafe_allow_html=True)
+                st.write(item["location"] or "未登録")
 
             if item["memo"]:
 
@@ -635,10 +455,6 @@ else:
                     """,
                     unsafe_allow_html=True
                 )
-
-            # -------------------------------------------------
-            # 削除
-            # -------------------------------------------------
 
             delete_col1, delete_col2 = st.columns([4, 1])
 
@@ -669,10 +485,6 @@ else:
                         st.error(
                             f"削除に失敗しました：{e}"
                         )
-
-    # -------------------------------------------------
-    # 検索結果なし
-    # -------------------------------------------------
 
     if shown_count == 0:
 

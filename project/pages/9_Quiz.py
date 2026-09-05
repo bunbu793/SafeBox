@@ -6,29 +6,18 @@ import streamlit.components.v1 as components
 from uuid import uuid4
 from supabase import create_client
 
-from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+from kobito_helper import KOBITO_IMAGES, apply_page_theme, show_kobito_popup
 
-inject_kobito_css()
-
-#============================
-#streamlitのセッションステートを初期化
-#===========================
 if "test_correct" not in st.session_state:
     st.session_state["test_correct"] = 0
 
 if "tesst_total" not in st.session_state:
     st.session_state["test_total"] = 0
 
-# ============================
-# Supabase 接続
-# ============================
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# ============================
-# 演出 HTML（そのまま）
-# ============================
 circle_effect = """<html><head><style>
 body{margin:0;background:white;overflow:hidden;}
 .scene{width:100vw;height:100vh;display:flex;justify-content:center;align-items:center;perspective:900px;transform:translateY(-140px);}
@@ -78,11 +67,13 @@ body{margin:0;background:white;overflow:hidden;}
 <div class="core"></div></div></div></html>
 """
 
-# ============================
-# ログイン画面（8_Quiz.py 内で完結）
-# ============================
 if "user_id" not in st.session_state:
-    st.title("防災クイズRPG - ログイン")
+
+    apply_page_theme(
+        "quiz",
+        "❓ 防災クイズRPG",
+        "ログインまたはゲストで開始しよう"
+    )
 
     mode = st.radio("選択してください", ["ゲストとしてプレイ", "アカウント登録", "ログイン"])
 
@@ -146,23 +137,21 @@ if "user_id" not in st.session_state:
 
     st.stop()
 
+user_id = st.session_state["user_id"]
+is_guest = st.session_state.get("is_guest", False)
+
+apply_page_theme(
+    "quiz",
+    "❓ 防災クイズRPG",
+    f"ログイン中：{user_id}"
+)
+
 show_kobito_popup(
     KOBITO_IMAGES["quiz"],
     "クイズに挑戦してランクアップしよう！",
     "kobito_quiz_shown"
 )
 
-# ============================
-# ログイン後
-# ============================
-user_id = st.session_state["user_id"]
-is_guest = st.session_state.get("is_guest", False)
-
-st.info(f"ログイン中：{user_id}")
-
-# ============================
-# ランク定義
-# ============================
 RANK_ORDER = ["F","E","D","C","B","A","A+","AA","S","SS","SSS","LEGEND"]
 TEST_COUNTS = {"F":5,"E":15,"D":25,"C":35,"B":45,"A":55,"A+":65,"AA":75,"S":85,"SS":95,"SSS":105,"LEGEND":100}
 RANK_COLORS = {"F":"blue","E":"blue","D":"blue","C":"blue","B":"green","A":"green","A+":"green","AA":"red","S":"red","SS":"red","SSS":"red","LEGEND":"gold"}
@@ -171,32 +160,22 @@ def next_rank(current):
     idx = RANK_ORDER.index(current)
     return RANK_ORDER[min(idx+1, len(RANK_ORDER)-1)]
 
-# ============================
-# JSON → 配列変換（選択肢シャッフル）
-# ============================
 def fix_choices(q):
-    # choices が文字列なら JSON に変換
     if isinstance(q.get("choices"), str):
         try:
             q["choices"] = json.loads(q["choices"])
         except:
             pass
 
-    # 正解を記録（例： "a"）
     correct = q["answer"]
 
-    # シャッフル
     if isinstance(q.get("choices"), list):
         random.shuffle(q["choices"])
 
-    # 正解は文字列のままで OK（Supabase の answer は "a" のまま）
     q["answer"] = correct
 
     return q
 
-#=============================
-# プロフィール読み込み
-# ============================
 def load_profile(uid):
     if is_guest:
         return {
@@ -230,9 +209,6 @@ def save_profile(profile):
         return
     supabase.table("profiles").update(profile).eq("user_id", profile["user_id"]).execute()
 
-# ============================
-# 問題読み込み
-# ============================
 def load_questions_by_rank(rank):
     res = supabase.table("questions").select("*").execute()
     all_q = [fix_choices(q) for q in res.data]
@@ -258,9 +234,6 @@ def load_solved(uid):
     q = supabase.table("questions").select("*").in_("id", ids).execute()
     return [fix_choices(item) for item in q.data]
 
-# ============================
-# セッション初期化
-# ============================
 profile = load_profile(user_id)
 
 st.session_state.score = profile["score"]
@@ -269,20 +242,12 @@ st.session_state.rank = profile["rank"]
 st.session_state.title = profile["title"]
 st.session_state.legend_flag = profile["legend_flag"]
 
-# ============================
-# ホーム
-# ============================
-st.title("防災クイズRPG")
-
 mode = st.selectbox("モードを選んでください", ["ホーム", "練習", "復習", "テスト", "ステータス"])
 
 current_rank = st.session_state.rank
 rank_color = RANK_COLORS[current_rank]
 test_count = TEST_COUNTS[current_rank]
 
-# ============================
-# ステータス画面（サイバー風）
-# ============================
 if mode == "ステータス":
     title = st.session_state.title or ("最高権力者" if st.session_state.legend_flag else "なし")
     rank_color = RANK_COLORS[current_rank]
@@ -353,7 +318,6 @@ if mode == "ステータス":
 
     components.html(html, height=400, scrolling=False)
 
-    # ランク進行バー
     rank_index = RANK_ORDER.index(current_rank)
     progress = rank_index / (len(RANK_ORDER) - 1)
 
@@ -363,22 +327,17 @@ if mode == "ステータス":
 
     st.progress(progress)
 
-# ============================
-# 練習モード
-# ============================
 elif mode == "練習":
     questions = load_questions_by_rank(current_rank)
 
     if not questions:
         st.info("まだ問題が登録されていません。")
     else:
-        # 初期化
         if "current_questions" not in st.session_state or not st.session_state.current_questions:
             st.session_state.current_questions = random.sample(questions, min(10, len(questions)))
             st.session_state.index = 0
             st.session_state.answered = False
 
-        # 終了処理
         if st.session_state.index >= len(st.session_state.current_questions):
             st.session_state.current_questions = []
             st.session_state.index = 0
@@ -390,62 +349,50 @@ elif mode == "練習":
         st.subheader(f"問題 {st.session_state.index+1}/{len(st.session_state.current_questions)}")
         st.write("### " + q["question"])
 
-        # ラジオボタンでは何も起こらない
         choice = st.radio(
             "選択肢を選んでね",
             q["choices"],
             key=f"practice_{st.session_state.index}"
         )
 
-        # 送信ボタンを押したときだけ answered=True
         if not st.session_state.answered:
             if st.button("送信"):
                 st.session_state.answered = True
 
-                # solved 登録（ゲスト以外）
                 if not is_guest:
                     supabase.table("solved").upsert({
                         "user_id": user_id,
                         "question_id": q["id"]
                     }).execute()
 
-        # ★★★ ここが修正ポイント ★★★
-        # answered=True のときだけ演出を発生させる
         if st.session_state.answered:
             if choice == q["answer"]:
                 st.success("正解！ +1pt")
 
-                # コンボ処理
                 st.session_state.combo = st.session_state.get("combo", 0) + 1
                 st.session_state.max_combo = max(st.session_state.max_combo, st.session_state.combo)
 
                 st.session_state.score += 1
 
-                # 正解演出（送信後のみ）
                 components.html(circle_effect, height=700, scrolling=False)
 
             else:
                 st.error("不正解…")
 
-                # コンボリセット
                 st.session_state.combo = 0
 
-                # 間違い登録（ゲスト以外）
                 if not is_guest:
                     supabase.table("mistakes").upsert({
                         "user_id": user_id,
                         "question_id": q["id"]
                     }).execute()
 
-                # 不正解演出（送信後のみ）
                 components.html(cross_effect, height=700, scrolling=False)
 
-            # 次の問題へ
             if st.button("次の問題へ"):
                 st.session_state.index += 1
                 st.session_state.answered = False
 
-                # プロフィール保存
                 save_profile({
                     "user_id": user_id,
                     "password": profile.get("password", ""),
@@ -458,9 +405,6 @@ elif mode == "練習":
 
                 st.rerun()
 
-# ============================
-# 復習モード
-# ============================
 elif mode == "復習":
     if is_guest:
         st.info("ゲストは復習機能を使えません。")
@@ -485,9 +429,6 @@ elif mode == "復習":
                     st.error("不正解…また復習しよう")
                     components.html(cross_effect, height=700, scrolling=False)
 
-# ============================
-# テストモード
-# ============================
 elif mode == "テスト":
     questions_all = load_questions_by_rank(current_rank)
     questions = random.sample(questions_all, min(test_count, len(questions_all)))
@@ -558,15 +499,9 @@ elif mode == "テスト":
             st.session_state.answered = False
             st.rerun()
 
-# ============================
-# ホーム表示
-# ============================
 else:
     st.write("モードを選んでね")
 
-    # ============================
-    # ログアウトボタン
-    # ============================
     if st.button("ログアウト"):
         for key in list(st.session_state.keys()):
             del st.session_state[key]

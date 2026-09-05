@@ -1,30 +1,23 @@
 import streamlit as st
 from supabase import create_client
 
-from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+from kobito_helper import KOBITO_IMAGES, apply_page_theme, show_kobito_popup
 
-# Supabase 初期化
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
-inject_kobito_css()
-
-st.title("SafeBox Manager - 設定")
-st.write("家族メンバーの追加や管理ができます。")
-
-# ログインチェック
 if "family_code" not in st.session_state:
     st.warning("初めにログインしてください")
     st.stop()
 
 family_code = st.session_state["family_code"]
 
-# 家族データ取得
-response = supabase.table("family_profiles").select("*").eq("family_code", family_code).execute()
-family_data = response.data[0] if response.data else {}
-
-st.info(f"ログイン中：{family_code}")
+apply_page_theme(
+    "settings",
+    "⚙️ 設定",
+    f"ログイン中：{family_code}"
+)
 
 show_kobito_popup(
     KOBITO_IMAGES["settings"],
@@ -32,9 +25,6 @@ show_kobito_popup(
     "kobito_settings_shown"
 )
 
-# ============================
-# 家族の名前登録
-# ============================
 st.subheader("家族の名前を追加")
 
 new_name = st.text_input("追加する家族の名前（例:太郎、花子）")
@@ -53,14 +43,10 @@ if st.button("家族を追加"):
 
         st.success(f"家族に「{new_name}」を追加しました（色: {color}）")
 
-# ============================
-# 家族一覧表示 & 削除機能
-# ============================
 st.subheader("登録済みの家族")
 
 members = supabase.table("family_members").select("*").eq("family_code", family_code).execute()
 
-# CSS（赤いゴミ箱ボタン）
 st.markdown("""
 <style>
 .red-trash-btn {

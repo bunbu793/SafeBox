@@ -22,8 +22,100 @@ KOBITO_IMAGES = {
     "settings":    f"{BASE_URL}/kobito_violet.png",
 }
 
-# 後方互換用（今まで KOBITO_IMAGE_URL を直接importしていた箇所のため）
+# 後方互換用
 KOBITO_IMAGE_URL = KOBITO_IMAGES["login"]
+
+# =========================================================
+# ページごとのテーマカラー（ヘッダーのグラデーション & 背景の淡い色）
+# =========================================================
+
+PAGE_THEMES = {
+    "login":       {"header": ("#e53935", "#ff7043"), "bg": ("#fff5f2", "#ffeceb")},
+    "home":        {"header": ("#fb8c00", "#ffb74d"), "bg": ("#fff8f0", "#fff3e0")},
+    "family":      {"header": ("#f9a825", "#ffe082"), "bg": ("#fffdf0", "#fff9db")},
+    "checklist":   {"header": ("#43a047", "#81c784"), "bg": ("#f3fbf3", "#e8f5e9")},
+    "family_code": {"header": ("#00897b", "#4db6ac"), "bg": ("#f0fbfa", "#e0f2f1")},
+    "shopping":    {"header": ("#1e88e5", "#64b5f6"), "bg": ("#f0f8ff", "#e3f2fd")},
+    "items":       {"header": ("#8e24aa", "#ba68c8"), "bg": ("#faf0fb", "#f3e5f5")},
+    "chat":        {"header": ("#ff6f91", "#ff9a76"), "bg": ("#fff8f0", "#fef1f1")},
+    "safety":      {"header": ("#6d4c41", "#a1887f"), "bg": ("#f8f4f2", "#efebe9")},
+    "quiz":        {"header": ("#616161", "#9e9e9e"), "bg": ("#f7f7f7", "#eeeeee")},
+    "brochure":    {"header": ("#1a237e", "#3949ab"), "bg": ("#f0f1fb", "#e8eaf6")},
+    "settings":    {"header": ("#7e57c2", "#b39ddb"), "bg": ("#f6f3fb", "#ede7f6")},
+}
+
+def apply_page_theme(page_key, title, subtitle=""):
+    """背景グラデーション・ヘッダーバナー・カード風ボタンを一括適用する"""
+    theme = PAGE_THEMES.get(page_key, PAGE_THEMES["home"])
+    h1, h2 = theme["header"]
+    b1, b2 = theme["bg"]
+
+    st.markdown(f"""
+    <style>
+    .stApp {{
+        background: linear-gradient(180deg, {b1} 0%, {b2} 100%);
+    }}
+
+    .page-header {{
+        background: linear-gradient(135deg, {h1}, {h2});
+        border-radius: 20px;
+        padding: 22px 28px;
+        color: white;
+        margin-bottom: 20px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }}
+    .page-header h1 {{
+        margin: 0;
+        font-size: 26px;
+    }}
+    .page-header p {{
+        margin: 6px 0 0 0;
+        opacity: 0.9;
+        font-size: 14px;
+    }}
+
+    .stButton>button{{
+        width:100%;
+        border-radius:16px;
+        font-weight:700;
+        font-size:15px;
+        border: none;
+        background: white;
+        color: #444;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        transition: 0.15s;
+        padding: 10px;
+    }}
+    .stButton>button:hover{{
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    }}
+
+    div[data-testid="stForm"] {{
+        background: white;
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    }}
+
+    div[data-testid="stMetric"] {{
+        background: white;
+        border-radius: 14px;
+        padding: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }}
+
+    div[data-testid="stContainer"] > div[style*="border"] {{
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }}
+    </style>
+
+    <div class="page-header">
+        <h1>{title}</h1>
+        <p>{subtitle}</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 KOBITO_CSS = """
 <style>

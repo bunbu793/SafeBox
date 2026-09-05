@@ -6,7 +6,7 @@ import os
 
 from kobito_helper import (
     KOBITO_IMAGES,
-    inject_kobito_css,
+    apply_page_theme,
     show_kobito_popup
 )
 
@@ -21,75 +21,14 @@ supabase = create_client(
     st.secrets["SUPABASE_KEY"]
 )
 
-# 小人 & バースト吹き出し CSS
-inject_kobito_css()
-
-st.markdown("""
-<style>
-
-@keyframes kobito-alert {
-    0%   { right: -250px; opacity: 0; }
-    20%  { right: 40px; opacity: 1; }
-    80%  { right: 40px; opacity: 1; }
-    100% { right: -250px; opacity: 0; }
-}
-
-.kobito-alert-box {
-    position: fixed;
-    top: 260px;
-    right: -250px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    animation: kobito-alert 6s ease-in-out forwards;
-}
-
-/* バースト吹き出し */
-.burst-balloon {
-    --burst-color: #ff66aa; /* ←色変更できる */
-    position: relative;
-    background: white;
-    padding: 25px;
-    width: 230px;
-    text-align: center;
-    font-weight: 700;
-    border-radius: 50%;
-    border: 4px solid #333;
-    box-shadow: 0 0 0 10px var(--burst-color);
-}
-
-.burst-balloon:before {
-    content: "";
-    position: absolute;
-    top: -18px;
-    left: -18px;
-    right: -18px;
-    bottom: -18px;
-    background: var(--burst-color);
-    clip-path: polygon(
-        50% 0%, 60% 15%, 80% 10%, 75% 30%,
-        95% 35%, 80% 50%, 100% 60%, 75% 70%,
-        85% 90%, 60% 85%, 50% 100%, 40% 85%,
-        15% 90%, 25% 70%, 0% 60%, 20% 50%,
-        5% 35%, 25% 30%, 20% 10%, 40% 15%
-    );
-    z-index: -1;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-#タイトル
-st.markdown("""
-<h1 translate="no">SafeBox Manager</h1>
-<h2>防災サポートアプリ</h2>
-""", unsafe_allow_html=True)
+apply_page_theme(
+    "login",
+    "🧰 SafeBox Manager",
+    "防災サポートアプリへようこそ"
+)
 
 #説明文
 st.write("""
-ようこそ、SafeBox Manager へ。
-
 このアプリでは、
 
 - 備品管理  

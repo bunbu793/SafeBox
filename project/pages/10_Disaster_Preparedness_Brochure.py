@@ -1,13 +1,14 @@
 import streamlit as st
 
-from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+from kobito_helper import KOBITO_IMAGES, apply_page_theme, show_kobito_popup
 
 st.set_page_config(page_title="自治体別防災パンフレット", page_icon="📄")
 
-inject_kobito_css()
-
-st.title("📢防災情報")
-st.write("都道府県を選択すると、自治体の防災パンフレットページへ移動できます。")
+apply_page_theme(
+    "brochure",
+    "📢 防災情報",
+    "都道府県を選択すると、自治体の防災パンフレットページへ移動できます"
+)
 
 show_kobito_popup(
     KOBITO_IMAGES["brochure"],

@@ -1,16 +1,12 @@
 import streamlit as st
 from supabase import create_client
 
-from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+from kobito_helper import KOBITO_IMAGES, apply_page_theme, show_kobito_popup
 
 # Supabase 接続
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
-
-inject_kobito_css()
-
-st.title("SafeBox Manager - Family code")
 
 # ログインチェック
 if "family_code" not in st.session_state:
@@ -18,6 +14,12 @@ if "family_code" not in st.session_state:
     st.stop()
 
 family_code = st.session_state["family_code"]
+
+apply_page_theme(
+    "family_code",
+    "🔑 家族共有メモ",
+    f"ログイン中：{family_code}"
+)
 
 show_kobito_popup(
     KOBITO_IMAGES["family_code"],
@@ -29,13 +31,11 @@ show_kobito_popup(
 response = supabase.table("family_profiles").select("*").eq("family_code", family_code).execute()
 family_data = response.data[0] if response.data else {}
 
-st.info(f"ログイン中：{family_code}")
-
 # 編集モード管理
 if "memo_edit" not in st.session_state:
     st.session_state.memo_edit = False
 
-memo = family_data.get("memo")or ""
+memo = family_data.get("memo") or ""
 
 # 編集モード切り替え
 if st.session_state.memo_edit:

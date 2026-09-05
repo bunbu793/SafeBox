@@ -1,7 +1,7 @@
 import streamlit as st
 from supabase import create_client
 
-from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+from kobito_helper import KOBITO_IMAGES, apply_page_theme, show_kobito_popup
 
 # =========================================================
 # Supabase 接続
@@ -22,8 +22,6 @@ st.set_page_config(
     layout="centered"
 )
 
-inject_kobito_css()
-
 # =========================================================
 # ログインチェック
 # =========================================================
@@ -33,6 +31,12 @@ if "family_code" not in st.session_state:
     st.stop()
 
 family_code = st.session_state["family_code"]
+
+apply_page_theme(
+    "family",
+    "👨‍👩‍👧‍👦 家族構成",
+    f"ログイン中：{family_code}"
+)
 
 show_kobito_popup(
     KOBITO_IMAGES["family"],
@@ -46,15 +50,6 @@ show_kobito_popup(
 
 if "edit_mode" not in st.session_state:
     st.session_state.edit_mode = False
-
-# =========================================================
-# タイトル
-# =========================================================
-
-st.title("👨‍👩‍👧‍👦 家族構成")
-st.caption("SafeBox Managerに登録する家族情報を管理します。")
-
-st.success(f"ログイン中：{family_code}")
 
 # =========================================================
 # Supabaseから家族データ取得
@@ -148,7 +143,6 @@ st.subheader("📝 家族全員の名前")
 
 existing_names = family_data.get("names", [])
 
-# namesが文字列になっていた場合への対策
 if not isinstance(existing_names, list):
     existing_names = []
 
@@ -205,7 +199,6 @@ if st.session_state.edit_mode:
         use_container_width=True
     ):
 
-        # 名前を整える
         cleaned_names = [
             name.strip()
             for name in name_inputs
@@ -227,14 +220,9 @@ if st.session_state.edit_mode:
                 .execute()
             )
 
-            # セッションにも保存
             st.session_state["family_data"] = data
-
-            # 編集モード終了
             st.session_state.edit_mode = False
-
             st.success("家族構成を保存しました！")
-
             st.rerun()
 
         except Exception as e:
@@ -253,18 +241,10 @@ if not st.session_state.edit_mode:
 
     st.subheader("📋 登録内容")
 
-    # -----------------------------------------------------
-    # 人数
-    # -----------------------------------------------------
-
     st.metric(
         "家族人数",
         f"{family_data.get('members', 1)} 人"
     )
-
-    # -----------------------------------------------------
-    # 名前一覧
-    # -----------------------------------------------------
 
     st.markdown("### 👨‍👩‍👧‍👦 家族一覧")
 
@@ -291,10 +271,6 @@ if not st.session_state.edit_mode:
         st.info(
             "まだ家族の名前が登録されていません。"
         )
-
-    # -----------------------------------------------------
-    # 備考
-    # -----------------------------------------------------
 
     st.markdown("### 📝 備考")
 

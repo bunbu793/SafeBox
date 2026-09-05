@@ -6,7 +6,7 @@ import math
 import json
 from supabase import create_client
 
-from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+from kobito_helper import KOBITO_IMAGES, apply_page_theme, show_kobito_popup
 
 # =========================================================
 # ページ設定
@@ -17,8 +17,6 @@ st.set_page_config(
     page_icon="🛒",
     layout="centered"
 )
-
-inject_kobito_css()
 
 # =========================================================
 # APIキー
@@ -60,10 +58,6 @@ def calc_distance(lat1, lon1, lat2, lon2):
     return R * c
 
 
-# =========================================================
-# Geoapify Geocoding
-# =========================================================
-
 def geocode(address):
 
     encoded = urllib.parse.quote(address)
@@ -103,10 +97,6 @@ def geocode(address):
     return lat, lon
 
 
-# =========================================================
-# 店舗検索
-# =========================================================
-
 def search_places(category, lat, lng):
 
     url = (
@@ -133,10 +123,6 @@ def search_places(category, lat, lng):
 
     return data.get("features", [])
 
-
-# =========================================================
-# 市区町村データ
-# =========================================================
 
 @st.cache_data
 def load_city_data():
@@ -198,16 +184,6 @@ city_map = {
 }
 
 # =========================================================
-# UI
-# =========================================================
-
-st.title("🛒 防災用品ショッピングガイド")
-
-st.caption(
-    "不足している防災用品を確認し、近くのお店を探せます。"
-)
-
-# =========================================================
 # ログインチェック
 # =========================================================
 
@@ -221,7 +197,9 @@ if "family_code" not in st.session_state:
 
 family_code = st.session_state["family_code"]
 
-st.success(
+apply_page_theme(
+    "shopping",
+    "🛒 防災用品ショッピングガイド",
     f"ログイン中：{family_code}"
 )
 
@@ -272,10 +250,6 @@ not_completed = [
     for name, done in saved_checks.items()
     if not done
 ]
-
-# =========================================================
-# おすすめ店舗
-# =========================================================
 
 recommend_map = {
     "飲料水（1人1日3L × 3日分）": "スーパー",
@@ -335,10 +309,6 @@ st.caption(
     "探したい地域とお店の種類を入力してください。"
 )
 
-# =========================================================
-# 地域
-# =========================================================
-
 st.markdown("#### 📍 場所")
 
 col1, col2 = st.columns(2)
@@ -367,10 +337,6 @@ place = st.text_input(
     placeholder="例：渋谷、新宿、お台場"
 )
 
-# =========================================================
-# 店舗種類
-# =========================================================
-
 category_map = {
     "スーパー": "commercial.supermarket",
     "コンビニ": "commercial.convenience",
@@ -384,18 +350,10 @@ category_name = st.selectbox(
     list(category_map.keys())
 )
 
-# =========================================================
-# 検索ボタン
-# =========================================================
-
 search = st.button(
     "🔍 店舗を検索",
     use_container_width=True
 )
-
-# =========================================================
-# 検索処理
-# =========================================================
 
 if search:
 
@@ -433,10 +391,6 @@ if search:
             lng
         )
 
-    # =====================================================
-    # 店舗整理
-    # =====================================================
-
     unique = {}
 
     for store in stores:
@@ -464,13 +418,11 @@ if search:
             slng
         )
 
-        # 2km以内
         if distance > 2:
             continue
 
         props["distance"] = distance
 
-        # 同じ店舗名の重複を除外
         unique[name] = props
 
     unique = dict(
@@ -479,10 +431,6 @@ if search:
             key=lambda item: item[1]["distance"]
         )
     )
-
-    # =====================================================
-    # 検索結果
-    # =====================================================
 
     st.divider()
 
@@ -498,17 +446,9 @@ if search:
 
         st.stop()
 
-    # =====================================================
-    # 件数
-    # =====================================================
-
     st.info(
         f"見つかった店舗：**{len(unique)} 件**"
     )
-
-    # =====================================================
-    # 地図
-    # =====================================================
 
     st.markdown("### 🗺️ 地図")
 
@@ -546,10 +486,6 @@ if search:
         use_container_width=True
     )
 
-    # =====================================================
-    # 店舗一覧
-    # =====================================================
-
     st.markdown("### 🏪 店舗一覧")
 
     for index, (name, props) in enumerate(
@@ -561,12 +497,10 @@ if search:
             border=True
         ):
 
-            # 店名
             st.markdown(
                 f"## {index}. {name}"
             )
 
-            # 距離
             distance = props.get(
                 "distance",
                 0
@@ -576,7 +510,6 @@ if search:
                 f"🚶 距離：**{distance:.2f} km**"
             )
 
-            # 住所
             address = props.get(
                 "formatted",
                 ""
@@ -588,7 +521,6 @@ if search:
                     f"📍 {address}"
                 )
 
-            # ブランド
             brand = props.get(
                 "brand"
             )
@@ -599,7 +531,6 @@ if search:
                     f"🏪 ブランド：{brand}"
                 )
 
-            # 営業時間
             opening = props.get(
                 "opening_hours"
             )
@@ -614,7 +545,6 @@ if search:
                     f"⏰ 営業時間：{opening}"
                 )
 
-            # カテゴリ
             categories = props.get(
                 "categories",
                 []
@@ -622,7 +552,6 @@ if search:
 
             if categories:
 
-                # 長すぎる場合を少し整理
                 category_text = ", ".join(
                     categories[:5]
                 )

@@ -2,7 +2,7 @@ import streamlit as st
 import json
 from supabase import create_client
 
-from kobito_helper import KOBITO_IMAGES, inject_kobito_css, show_kobito_popup
+from kobito_helper import KOBITO_IMAGES, apply_page_theme, show_kobito_popup
 
 # =========================================================
 # Supabase
@@ -23,8 +23,6 @@ st.set_page_config(
     layout="centered"
 )
 
-inject_kobito_css()
-
 # =========================================================
 # ログインチェック
 # =========================================================
@@ -35,20 +33,17 @@ if "family_code" not in st.session_state:
 
 family_code = st.session_state["family_code"]
 
+apply_page_theme(
+    "checklist",
+    "✅ 防災備品チェックリスト",
+    f"ログイン中：{family_code}"
+)
+
 show_kobito_popup(
     KOBITO_IMAGES["checklist"],
     "備品がそろっているかチェックしよう！",
     "kobito_checklist_shown"
 )
-
-# =========================================================
-# タイトル
-# =========================================================
-
-st.title("✅ 防災備品チェックリスト")
-st.caption("必要な防災備品がそろっているか確認しましょう。")
-
-st.success(f"ログイン中：{family_code}")
 
 # =========================================================
 # 家族データ
@@ -319,10 +314,6 @@ st.divider()
 st.subheader("🛡️ 家族の備え")
 
 
-# =========================================================
-# 安全度ランク判定
-# =========================================================
-
 def get_rank(rate):
 
     if rate >= 90:
@@ -343,11 +334,6 @@ def get_rank(rate):
 
 rank, safety_text, rank_color = get_rank(rate)
 
-
-# =========================================================
-# 安全度ランク 1本バー
-# =========================================================
-
 st.markdown(
     f"""
     <div style="
@@ -367,10 +353,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-# =========================================================
-# チェック状況
-# =========================================================
 
 st.subheader("📋 チェック状況")
 
