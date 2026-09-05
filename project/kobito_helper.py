@@ -46,6 +46,10 @@ PAGE_THEMES = {
 
 def apply_page_theme(page_key, title, subtitle=""):
     """背景グラデーション・ヘッダーバナー・カード風ボタンを一括適用する"""
+
+    # 小人のスライドインアニメーション用CSSも一緒に注入する
+    inject_kobito_css()
+
     theme = PAGE_THEMES.get(page_key, PAGE_THEMES["home"])
     h1, h2 = theme["header"]
     b1, b2 = theme["bg"]
