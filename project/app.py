@@ -40,13 +40,6 @@ st.write("""
 など、災害時に役立つ機能をまとめて利用できます。
 """)
 
-# ページ読み込み時の「こんにちは」（1回だけ）
-show_kobito_popup(
-    KOBITO_IMAGES["login"],
-    "こんにちは！<br>ぼくが案内するよ！",
-    "kobito_shown"
-)
-
 # =========================================================
 # 家族の防災グッズ状態を確認する関数
 # =========================================================
@@ -117,24 +110,6 @@ if st.button("決定"):
             if saved_password == input_password:
                 st.success("ログインに成功しました")
                 st.session_state["family_code"] = input_code
-
-                # 在庫状態に応じて「おかえりなさい」メッセージを変える
-                status = get_family_status(input_code)
-
-                if status == "danger":
-                    welcome_message = "おかえりなさい！<br>大変です、防災グッズに期限切れのものがあります！"
-                elif status == "warning":
-                    welcome_message = "おかえりなさい！<br>防災グッズにもうすぐ期限のものがあります、注意して！"
-                elif status == "safe":
-                    welcome_message = "おかえりなさい！<br>防災グッズは今は安心だね！"
-                else:
-                    welcome_message = "おかえりなさい！<br>まずは防災グッズを登録してみよう！"
-
-                show_kobito_popup(
-                    KOBITO_IMAGES["login"],
-                    welcome_message,
-                    "kobito_welcome_shown"
-                )
             else:
                 st.error("パスワードが違います")
         else:
@@ -151,13 +126,35 @@ if st.button("決定"):
                 st.success(f"ログインコード「{input_code}」を登録しました")
                 st.session_state["family_code"] = input_code
 
-                # 新規登録時の「ようこそ」
-                show_kobito_popup(
-                    KOBITO_IMAGES["login"],
-                    "ようこそ！<br>登録ありがとう！",
-                    "kobito_register_shown"
-                )
-
 # 現在のログインコード表示
 if "family_code" in st.session_state:
     st.info(f"現在のログインコード：{st.session_state['family_code']}")
+
+# =========================================================
+# 小人メッセージを決定して、最後に1回だけ表示する
+# =========================================================
+
+if "family_code" in st.session_state:
+
+    # ログイン済み（再訪問時も含めて毎回、在庫状況に応じたメッセージ）
+    status = get_family_status(st.session_state["family_code"])
+
+    if status == "danger":
+        kobito_message = "おかえりなさい！<br>大変です、防災グッズに期限切れのものがあります！"
+    elif status == "warning":
+        kobito_message = "おかえりなさい！<br>防災グッズにもうすぐ期限のものがあります、注意して！"
+    elif status == "safe":
+        kobito_message = "おかえりなさい！<br>防災グッズは今は安心だね！"
+    else:
+        kobito_message = "おかえりなさい！<br>まずは防災グッズを登録してみよう！"
+
+else:
+
+    # 未ログイン（毎回「こんにちは」）
+    kobito_message = "こんにちは！<br>ぼくが案内するよ！"
+
+show_kobito_popup(
+    KOBITO_IMAGES["login"],
+    kobito_message,
+    "kobito_login"
+)
